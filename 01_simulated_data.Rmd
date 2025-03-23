@@ -1,0 +1,85 @@
+---
+title: "01_simulated_data"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# This script generates a dataset that could be used in "01_data.Rmd"
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
+if (!require("MASS")) {install.packages("MASS"); require("MASS")} 
+```
+
+```{r simulate dataset}
+set.seed(123456)
+
+n <- 100  
+
+# Demographic data
+demo_1 <- sample(c("1", "2", "3"), n, replace = TRUE) 
+demo_2 <- sample(c("female", "male", "non-binary", "other"), n, replace = TRUE)
+demo_3 <- sample(c("female", "male", "non-binary", "genderfluid", "other"), n, replace = TRUE)
+demo_4 <- sample(c("heterosexual", "homosexual", "bisexual", "asexual", "pansexual"), n, replace = TRUE)
+
+# Scale data. These data mirror the Beck Depression Inventory-II (PDF: https://naviauxlab.ucsd.edu/wp-content/uploads/2020/09/BDI21.pdf)
+items <- 21
+bdi_items <- c(1:15, 17, 19:21)  
+response_options_0_3 <- 0:3
+
+# Create a correlation matrix to simulate data from
+cor_matrix <- matrix(0.53, nrow = length(bdi_items), ncol = length(bdi_items)) # moderate-large correlations (.53)
+diag(cor_matrix) <- 1  
+
+# Simulate correlated data (multivariate normal)
+bdi_data_simulated <- mvrnorm(n, mu = rep(1.5, length(bdi_items)), Sigma = cor_matrix)
+
+# Convert to a data frame
+bdi_data <- as.data.frame(bdi_data_simulated)
+
+# Scale the simulated data to 0-3 
+bdi_data <- as.data.frame(lapply(bdi_data, function(x) round(pmin(pmax(x, 0), 3))))
+
+colnames(bdi_data) <- paste("bdi_item_", bdi_items, sep = "")
+
+# Combine the data frames (demographic + BDI data)
+demographic_data <- data.frame(demo_1, demo_2, demo_3, demo_4)
+full_data <- cbind(demographic_data, bdi_data)
+
+# Introduce missing values (10% missing)
+introduce_NAs <- function(data, na_percentage = 0.1) {
+  n_cells <- nrow(data) * ncol(data)  
+  n_NAs <- floor(n_cells * na_percentage)  
+  
+  # Randomly choose values to replace with NA
+  na_indices <- sample(1:n_cells, n_NAs)
+  
+  data_matrix <- as.matrix(data)
+  data_matrix[na_indices] <- NA
+  
+  return(as.data.frame(data_matrix))  
+}
+
+full_data_bdi_with_NAs <- full_data
+full_data_bdi_with_NAs[, 5:ncol(full_data_bdi_with_NAs)] <- introduce_NAs(full_data_bdi_with_NAs[, 5:ncol(full_data_bdi_with_NAs)], na_percentage = 0.1)
+
+# Change bdi_item_4 response range to 1-5 
+full_data_bdi_with_NAs$bdi_item_4 <- full_data_bdi_with_NAs$bdi_item_4 + 1
+
+# Add BDI-II items 16 and 18 with seven responses (0-6)
+full_data_bdi_with_NAs$bdi_item_16 <- sample(0:6, nrow(full_data_bdi_with_NAs), replace = TRUE)
+full_data_bdi_with_NAs$bdi_item_18 <- sample(0:6, nrow(full_data_bdi_with_NAs), replace = TRUE)
+
+head(full_data_bdi_with_NAs)
+View(full_data_bdi_with_NAs)
+cor(full_data_bdi_with_NAs[, 5:ncol(full_data_bdi_with_NAs)], use = "pairwise.complete.obs")
+```
+
+```{r save data}
+write.csv(full_data_bdi_with_NAs, "01_data.csv")
+```
+
