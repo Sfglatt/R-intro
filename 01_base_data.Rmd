@@ -1,0 +1,747 @@
+---
+title: "01_base_data"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Intro
+```{r intro}
+# In R, writing code means you're providing the program with specific instructions, such as performing calculations or creating visualizations.
+
+# To run ALL of the code in this chunk, place your cursor anywhere within the chunk and press Ctrl + Enter, or click the "Run - current chunk" button in the top-right corner.
+
+# To run a specific part of the code, highlight the portion you want to run and press Ctrl + Enter, or "Run - selected lines."
+
+10 * 5 + 3 
+
+# If you highlight just the expression 10 * 5 (and not '+ 3') and press Ctrl + Enter or "Run - selected lines," R will execute only that part, returning the result 50.
+
+# There are some R 'quirks.' For example, run the next few line: 
+round(2.5) 
+round(1.25, 1)  # the '1' on the right tells R to round to one decimal place
+
+# The R round() function follows a specific rule called 'round half to even,' where numbers ending in .5 are rounded to the nearest even number. 
+```
+
+# Packages
+```{r packages}
+# Functions take input, complete "tasks" or steps, and return output. 
+# R has a core set functions and features that come pre-installed.
+# For example, round() is a base R function. 
+
+# R packages are essentially bundles of functions and instructions. There are 1000s of packages that are amazing for different types of analyses, visualizations, and other tasks!
+browseURL("Https://cran.r-project.org/")
+
+# To install a package, or load a package that you've previous installed, you can run
+if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
+# This will install the "dplyr" package if you haven't installed it before, or just load it if you have already installed it. 
+
+# When you install a package, it is saved into your "library". To see which packages you already have in your library, run
+library()
+
+# To find out more information about a package,
+?dplyr
+
+# We'll come back to the dplyr  package later!
+
+# While base R follows the 'round half to even' rule, There is a function called 'round_half_up' in the 'janitor' package for correct rounding in R. 
+if (!require("janitor")) {install.packages("janitor"); require("janitor")} 
+
+round_half_up(2.5, digits = 0)
+round_half_up(1.25, digits = 1)
+```
+
+# Base operations
+```{r base R}
+# R has built-in operations and functions:
+
+# Arithmetic operators:
+2 + 8
+2 - 8
+2 * 8
+2 / 8
+2 ^ 8
+
+# Logical operators:
+2 < 8    # less than
+2 > 8    # greater than
+2 >= 8   # greater than or equal to
+2 <= 8   # less than or equal to
+2 == 8   # equals (you need two equal signs!)
+2 != 8   # does not equal. # In general, the '!' operator inverts the condition. So here, '!=' means does not equal. 
+
+# For other examples of !,
+!TRUE  # TRUE becomes FALSE
+!FALSE  # FALSE becomes TRUE
+
+# Logical comparison operators
+(2 < 8) & (3 > 1) # '&' is AND - are both statements correct?
+(2 > 8) | (3 > 1) # '|' is OR - is either statement true? 
+
+# All information in R is stored in 'objects'. This allows us to access previously computed information at any time! This is how we'll import data, save analysis results, and store data visualizations. 
+
+# Objects are created using '<-' 
+
+# For example, 
+x1 <- 4 + 7 * 10 
+y1 <- x1 * 2
+
+# Now, we can access the information just by running the objects:
+x1
+y1
+
+# You can also instruct R to 'print' an object or information. This can sometimes have the same result as running the object itself. 
+print(x1)
+print("Hello, R!")
+
+# Conditional logic with 'if-else' statements are often used in data manipulation and analysis. For an example,
+x <- 10
+
+if (x > 5) {
+  print("x is greater than 5")
+}
+
+if (x > 5) {
+  print("x is greater than 5")
+} else {
+  print("x is less than or equal to 5")
+}
+# Curly brackets {} group multiple lines of code together that are used for a series of steps/instructions. 
+# Here, we need {} to enclose the 'if' and 'else' steps.
+
+# Above, the if-else statement used 'if' or 'else,' which has two conditions. However, you can have more conditions. To create this logic, you being with 'if' and end with 'else,' and everything in between is 'else if'. For example, 
+
+if (x > 15) {
+  print("x is greater than 15")
+} else if (x > 5) {
+  print("x is greater than 5 but less than or equal to 15")
+} else {
+  print("x is less than or equal to 5")
+}
+# Here, there are three conditions. First, is x > 15? If not, is x greater than 5? If not, then X is less then or equal to 5.
+# Since x = 10, R returns "x is greater than 5 but less than or equal to 15."
+
+# Now, let's set two operations. In addition to x <- 10,
+y <- 5
+
+if (x > 5 & y < 10) {  # The AND operator (are both conditions true?)
+  print("x is greater than 5 and y is less than 10")
+} else if (x > 5 | y > 10) {  # The OR operator (is either condition true?)
+  print("Either x is greater than 5 or y is greater than 10")
+} else {
+  print("Neither condition is true")
+}
+
+# We can save lists of information. These lists, called vectors, are created with the function "c()"
+# "c()" means concatenate. i.e., bind all the elements together. 
+# There are a few types of vectors. The main ones to know are: numeric (this stores numbers), character (this stores text), logical (this only stores 'TRUE' and 'FALSE'), and categorical (this stores information as factors).
+number_vector <- c(3, 1, 4, 1, 5, 9)
+character_vector <- c("strawberry", "apple", "milkshake")
+logical_vector <- c(TRUE, FALSE, TRUE, FALSE)
+category_vector <- factor(c("low", "medium", "high", "high", "low")) 
+# For a categorical vector, you need to specify that it is a factor. Otherwise, it will be stored as a character here (and if there were numbers it would be stored as numeric). 
+
+# You can check the type of vector with 'class()'.
+class(number_vector)  
+class(character_vector)
+class(logical_vector)
+class(category_vector)
+
+# You can also check the internal structure of an R object or vector with 'str()'
+str(number_vector)
+str(y1) # The object created above
+
+# We can do math functions with the numeric vector. Functions take input, complete "tasks" or steps, and return output. 
+# For example, 
+mean(number_vector)    # Mean of the numbers in the vector 
+median(number_vector)  # Median of the vector
+sd(number_vector)      # Standard deviation of the vector
+var(number_vector)     # Variance of the vector
+min(number_vector)     # Lowest value of a vector
+max(number_vector)     # Highest value of a vector
+sum(number_vector)     # Compute the sum of elements in a vector
+length(number_vector)  # Find the number of elements in a vector
+summary(number_vector) # Summary statistics for the vector
+table(number_vector)   # Frequency of each element in 'number_vector'. There are two "1"s in the vector, so "2" is listed under "1".
+
+# To see details of functions, you can type help(function). For example,
+help(mean)
+# or
+?mean
+
+# We can also use the arithmetic and logical operators on our vector. For example, 
+number_vector * 10 # Multiplies every element in our 'number_vector' by 10
+number_vector > 3  # Checks if each element in the vector is greater than 3.
+
+# There are also functions to evaluate the vector.
+any(number_vector > 3)    # TRUE if any element of the vector is greater than 3
+all(number_vector > 0)    # TRUE if all elements are greater than 0
+which(number_vector > 3)  # Which elements are greater than 3
+anyNA(number_vector)      # TRUE if there are any missing (NA) values
+is.na(number_vector)      # Logical vector showing TRUE for missing values, and FALSE for non-missing values.
+
+# To access a specific value or values in a vector, use square brackets []:
+number_vector[2]  # Enclose the position of the value you want to see in square brackets. [1] will yield the 2nd number in the vector
+number_vector[number_vector > 3] # Enclose a condition in the brackets. [ > 3] will yield all values in the vector that > 3.
+
+# Here, we make another numeric vector, but we add in a non-numeric piece of information.  
+mixed_vector <- c(3, 1, 4, 1, 5, 9, "puppy")
+class(mixed_vector) # Now, the entire vector is considered a 'character' instead of numeric.
+# This is important when working with data. If you have a variable that you use for analysis, but some of the responses are text, R will likely throw you some errors about being non-numeric. 
+
+# If we use our operations on this vector with a character, you'll get an error.
+mixed_vector * 10  
+sum(mixed_vector)
+
+# You can change vector types in R. 'as.numeric' will coerce a vector to be numeric, and 'as.character' will coerce a vector to a character.
+mixed_vector <- as.numeric(mixed_vector) # You will get a warning that NAs were introduced. This is because "puppy" becomes NA. 
+
+# Now, our operators will work! For the "NA" value, the result will also be NA.
+mixed_vector * 10
+
+# But happens when you try to do math with it?
+sum(mixed_vector) 
+
+# R will not be able to add up the numbers. However, you can instruct R to ignore the missing values with the expression 'na.rm = TRUE'
+sum(mixed_vector, na.rm = TRUE)  # Now it correctly returns 7 (1 + 2 + 4)
+anyNA(mixed_vector)              # TRUE 
+
+# Data frames in R consist of columns and rows. 
+# Columns in a data frame can be different types (numeric, character, etc.).
+# To create a data frame in R, you can use the 'data.frame()' function. Here, you write the column name = the values. For example,
+
+data_1 <- data.frame(
+  id = c(1, 2, 3, 4),                           # create an id column. The values will be 1 in row 1, 2 in row 2...
+  name = c("Alice", "Bob", "Charlie", "David"), # create a name column. The values will be "Alice" in row 1, "Bob" in row 2..
+  age = c(25, 30, 35, 40)
+)
+
+str(data_1) # The id (vector) column is numeric, the name column is a character, and age is numeric. 
+
+# We'll come back to data frames soon!
+```
+
+# Creating functions
+```{r create functions}
+# Some of the R  built-in functions are in the previous chunk, such as mean() and sd(). However, you can also create your own functions!
+# Functions are defined using the 'function()' keyword. 
+# Then, curly brackets {} are used to define the body of the function. Inside the {} brackets, you write the steps that the function will perform using the input values.
+
+# For example, to create a function that will take a number (input) and return the number multiplied by two (output), 
+multiplication_function <- function(x) { 
+  return(x * 2)
+}
+
+# Now, multiplication_function() will return the number you input multiplied by 2. 
+multiplication_function(10) # returns 20
+
+# Similarly, 
+add_numbers <- function(x, y) {
+  return(x + y)
+}
+
+# What does this function do?
+add_numbers(3, 5) 
+
+# For another example, to
+# 1) take someone's "name" and "mood" as an input, and 
+# 2) return "Hello, [name], you seem [mood]!" as output, 
+
+greeting_function <- function(name, mood) {
+  print(paste("Hello,", name, ", you seem", mood, "!"))
+}
+
+# Now, to use the function, you type 'greet(name, mood)' - because that is the function you just created! For example, 
+greeting_function("Lily", "excited")
+# This will yield "Hello, Lily , you seem excited !"
+
+# You can create more complex functions. For example, to make a new function with an if-else logical conditions, 
+depression_diagnosis_function <- function(depression_score) {
+  
+  if (depression_score >= 20) {
+    return("Severe Depression")
+  }
+  
+  else if (depression_score >= 10 & depression_score < 20) {
+    return("Moderate Depression")
+  }
+  
+  else if (depression_score >= 5 & depression_score < 10) {
+    return("Mild Depression")
+  }
+  
+  else {
+    return("No Depression")
+  }
+}
+# This creates a function called "depression_diagnosis_function." This function takes a numeric score as input and returns a depression level as output ("Severe Depression," "Moderate Depression," "Mild Depression," or "No Depression").
+# The depression level output is based on the if/else conditions that you instructed the function with. Scores > 20 would be severe, scores between 10-19 are moderate, scores between 5-9 mild, and everything else (i.e.,anything < 5) would be none. 
+
+# So, if you use the depression_diagnosis_function you just created,
+depression_diagnosis_function(0)  # putting in 0 for depression_score will yield "No Depression"
+depression_diagnosis_function(27) # putting in 27 for depression_score will yield "Severe depression"
+
+# Functions can give you more then one output. 
+# For example, if you want R to take a number as input and give you the (1) square of the number, and (2) cube of the number, you need to define a 'list' of things that it should give you as output. 
+# You make a list by creating objects, and then instructing R to return the objects in the list.
+square_cube_function <- function(x) {
+  square <- x^2                          # Make an object for the square of the number
+  cube <- x^3                            # Make an object for the cube of the number
+  return(list(square_result = square, cube_result = cube))  # Return the square object and cube object in a list. 
+  # Here, the square object is called 'square_result' in the list, and the cube result is called 'cube_result'
+}
+
+square_cube_function(3) 
+# This returns a list with two elements: square_result and cube_result. 
+# The "$" symbol is used to access elements from lists or data frames. You will use this a lot! 
+
+# For example, lets store the results as an object:
+square_cube_function_object <- square_cube_function(3)
+
+# Now, to access specific results, use the '$' operator.
+square_cube_function_object$square_result
+square_cube_function_object$cube_result
+
+# However, you do NOT use $ for vectors. This is because with $, R is looking for a name or label, but there are no names/labels in a vector. (To access a specific value in a vector, you use square brackets, such as [3])
+
+# You don't need to know how to write functions! Understanding this concept makes it easier to write your own data/analysis functions later.
+```
+
+# Import data
+```{r data}
+data <- read.csv("01_data.csv") # This is the basic call to import data. There are a few things I do with every dataset:
+
+data <- read.csv("01_data.csv", 
+                 header = TRUE, # Setting header = TRUE tells R to read the top row as a header instead of an observation/participant
+                 sep = ",",     # The sep argument = "," is for csv so R knows how to read commas and make rows/columns
+                 na.strings = c("", "NA", "N/A", "n/a", "N/a", "-99", -99)) # na.strings is a list of possible ways that people code missing values. This tells R that an empty cell, NA, N/A, n/a, and -99 are all codes for missing data!
+
+# If you are importing an excel document, you can use the 'read_excel' function from the 'readxl' package. 
+if (!require("readxl")) {install.packages("readxl"); require("readxl")} 
+# data <- read_excel("01_data.xlsx") 
+
+# If you are importing an SAV file, you can use the 'read_sav' function from the 'haven' package. 
+if (!require("haven")) {install.packages("haven"); require("haven")} 
+# data <- read_sav("01_data.sav") 
+
+View(data)     # Look at your data
+head(data)     # Look at the first few rows of your data
+colnames(data) # List the variable names in your dataset
+anyNA(data)    # Is there any missing data?
+colSums(is.na(data)) # How many NAs are in each column?
+summary(data)  # summarize all variables in the data.
+
+str(data)
+# We want the bdi items to be numeric. 
+
+# You 'call' specific columns with $ for operations. For example,
+summary(data$bdi_item_1) 
+sd(data$bdi_item_1)               # But what happens here?
+sd(data$bdi_item_1, na.rm = TRUE) # Don't forget that we often need 'na.rm = TRUE' to ignore missing data! 
+# There are some times that you might want to set it to FALSE. For example, if you are summing scale items and don't want people who have missing items to have a sum. 
+
+# If you want to see how many people have a certain score or level of something, you can look at a table: 
+table(data$bdi_item_1) 
+# This item has response options from 0 to 3. Here, we see how many people chose choice 1, choice 2, etc.
+
+# If you want to see how many people chose each item by another characteristic, you can make a table with both variables. For example, if you want to see how many people chose each response in this item split by gender, you can run 
+table(data$bdi_item_1, data$demo_2)
+
+# You can subset the data by indexing columns and rows with square brackets. This follows the form [rows, columns]
+subset_data_1 <- data[, c("bdi_item_1", "bdi_item_2")] # This specified columns (by name), but no rows. All rows will be included. 
+subset_data_2 <- data[, c(1, 2)]  # This specified columns (by number), but no rows. All rows will be included.
+subset_data_3 <- data[, 1:3] # The ':' symbol instructs R to select from the first value to the last value. 
+# Since 1:3 provide a range of numbers that R understands as a vector, this does not need c().
+
+subset_data_4 <- data[4:8, ] # Here, we subset rows 4 through 8 and did not specify columns. All columns will be selected. 
+subset_data_5 <- data[4:8, c("demo_1", "demo_2")] # This subsets rows 4-8 and columns 1-2.
+
+# You can also subset the data by setting conditions with the operators, like a scale score cutoff. 
+subset_data_6a <- data[data$bdi_item_3 > 1, ] # Now, this subset only includes rows who have a score > 1 on item 3
+subset_data_6b <- data[data$bdi_item_3 > 1 & data$bdi_item_6 < 3, ] # You can set multiple conditions to subset. 
+# Now, this subset only includes rows with a score > 1 on item 3 and a score < 3 on item six.
+```
+
+# dplyr
+```{r dplyr}
+# Handling the data above, we've used base R functions. These are useful, but there are some R packages that also handle data very well. The "dplyr" package is especially good for cleaning and processing data.
+
+# Useful functions include: 
+# select(): select variables in data. 
+# filter(): find columns/rows with a certain condition  
+# rename(): name variables meaningfully  
+# mutate(): manipulate variables. Score measures, create new variables with logic, etc.
+# summarise(): reduces multiple values down to a single summary (e.g., mean, SD, range)
+# group_by(): allows you to perform operation “by group”
+
+# When selecting variables, there are some useful helper functions. For example, 
+# starts_with(): selects all variables that start with a certain prefix. (e.g., 'bdi_item_1' and 'bdi_item_2')
+# ends_with(): selects all variables that end with a certain prefix (e.g., 'item_1_bdi' and 'item_2_bdi')
+# contains(): selects all variables that contain a certain string (e.g., 'bdi_item_1' and 'item_1_bdi')
+
+# https://r4ds.hadley.nz/data-transform is a great chapter to read/learn more about dplyr!
+
+# For example, to select columns that start with bdi_, 
+items_subset_1a <- dplyr::select(data, starts_with("bdi_"))
+
+# To select without a helper function, 
+items_subset_1 <- dplyr::select(data, bdi_item_1, bdi_item_2, bdi_item_3)
+
+# To filter the dataset, follow the form "dplyr::filter(data, condition)"
+
+# This line filters your dataset to people who have values over 1 in bdi_item_3. 
+subset_data_7 <- dplyr::filter(data, bdi_item_3 > 1)
+
+# This line sets two conditions with "&". This will filter your data to people who have > 1 on item 3 AND < 3 on item 6
+subset_data_8 <- dplyr::filter(data, bdi_item_3 > 1 & bdi_item_6 < 3) 
+
+# This line sets an "either/or" condition. The symbol for "or" in dplyr is the "|" operator. This will filter your data to people who have > 1 on item 3 OR < 3 on item 6.
+subset_data_9 <- dplyr::filter(data, bdi_item_3 > 1 | bdi_item_6 < 3) 
+
+# You can remove people with missing data in column 1 from the dataset with "!is.na" 
+# Remember, ! inverts the condition. Here, it inverts 'is.na' so that all non-missing data is retained. 
+subset_data_10 <- dplyr::filter(data, !is.na(bdi_item_3))
+
+#...and this removes missing data AND filters to people with > 1 on item 3.
+subset_data_11 <- dplyr::filter(data, !is.na(bdi_item_3) & bdi_item_3 > 1) 
+
+# A core feature of dplyr is the pipe operator (%>%). The pipe allows you to chain multiple dplyr functions together so that you can perform multiple operations in a single line of code. 
+
+# For an example of two arguments chained together, let's filter() rows based on a condition and then select() specific columns:
+filtered_data <- data %>% # Here, the pipe means 'take the data and pass it to the next part of the code.'
+  dplyr::filter(bdi_item_3 > 1) %>% # Here, the pipe means 'take the filtered data and pass it to the next part of the code'
+  dplyr::select(bdi_item_3, bdi_item_4, bdi_item_5)
+
+# Look at your new dataset
+View(filtered_data)
+
+# When you are using just one function, the pipe operator is not necessary. However, you can still use the pipe operator.
+# For example, if you are just using the filter() argument, you can write it in two ways:
+
+# 1) No pipe operator,  similar to the selection/filter arguments above. 
+subset_data_2 <- dplyr::filter(data, demo_2 == "female") 
+
+# 2) With the pipe operator.
+subset_data_2 <- data %>% 
+  dplyr::filter(demo_2 == "female") # Here, the pipe says 'take the data and pass it to the next part of the code.'
+
+# To rename columns, in the order new column name = old column name:
+
+data <- data %>%
+  dplyr::rename(
+    sex = demo_1,
+    gender = demo_2,
+    gender_explain = demo_3,
+    sex_orient = demo_4
+  )
+
+# Recode variables. Here, we are recoding the sex variable from numeric values (1,2,3) to text categories.
+data$sex <- dplyr::recode(data$sex, 
+                          "1" = "female", 
+                          "2" = "male",
+                          "3" = "intersex")
+
+# If you want to change a variable, or create a new variable based on a variable (or multiple variables), you can use "mutate". 
+# Many of the mutate functions involve calculations (e.g., scoring a scale). Therefore, you should check that the data you'll be using is the correct class - numeric. 
+
+str(data) # Some of the bdi items are not numeric. So, the first thing we will use mutate for is to change the variable type:
+
+data <- data %>%
+  mutate(across(starts_with("bdi"), as.numeric)) 
+# Instead of listing out every bdi item, 'starts_with' instructs R to select all variables that start with the same letter(s) 
+# You can also use 'ends_with' (like if all your variables ended with _bdi), or 'contains' to select all variables with 'bdi' anywhere.
+
+# For another example of mutate, if you have a variable that ranges from 1-4, but you want it to range from 0-3,
+data <- data %>%
+  dplyr::mutate(bdi_item_4 = bdi_item_4 - 1) 
+
+# Now, bdi_item_4 will range from 0-3. To double check, 
+summary(data$bdi_item_4)
+# If you want to make a new variable with the change instead of manipulating the variable itself, use a different name on the left side   of the equation (e.g., 'bdi_item_4_minus_one = bdi_item_4 - 1')
+
+# Here, we similarly create a new variable, but do so based on a condition that we set. This is useful when you want to categorize people based on a scale scores. e.g., to make a new variable based on item 9 of the BDI ('suicidal thoughts or wishes') where 1 = suicide risk, 0 = no suicide risk. 
+data <- data %>%
+  dplyr::mutate(
+    cutoff_bdi_item_9 = ifelse(bdi_item_9 > 1, 1, 0)  
+  )
+# This is instructing R/dplyr to create a new column (cutoff_bdi_item_9) based on bdi_item_9: if scores are greater then 1, code this as "1", and every other [non-missing!] value should be coded "0". 
+
+# You can categorize with multiple levels (not just 1 and 0) with "case_when" within mutate. For example, 
+data <- data %>%
+  mutate(item_16_three_cutoffs = case_when(        # Create a new variable called item_16_three_cutoffs based on item 16, where:
+    bdi_item_16 < 1 ~ "Low",                       # If item 16 is < 1, category = "Low"
+    bdi_item_16 >= 1 & bdi_item_16 < 3 ~ "Medium", # If 1 or higher and less than 3, category = "Medium"
+    bdi_item_16 >= 4 ~ "High"                      # If 4 or higher, category = "High"
+  ))
+# In general, the ~ symbol separates the left side from the right side of something
+# In case_when, ~ separates the condition (left side) from the result (right side) to say 'if the condition is true, return the result.'
+# In many analyses, ~ separates the outcome variable (left side) from the predictor variable(s) (right side)
+# For example, the formula for a linear regression is
+# lm(outcome_variable ~ predictor_1 + predictor_2, data = dataset) 
+
+# How many people are in each category?
+table(data$item_16_three_cutoffs)
+
+# You can also recode variables with case_when. For example, BDI items are all meant to range from 0-3. However, if you look at the measure, items 16 and 18 have seven response options: 0, 1a, 1b, 2a, 2b, 3a, and 3b. So, we want to recode response "2" (1b) to 1, "3" (2a) and "4" (2b) to 2, and "5" (3a) and "6" (3b) to 3, while keeping responses 0 and 1 unchanged. 
+table(data$bdi_item_16)
+
+data <- data %>%
+  dplyr::mutate(
+    bdi_item_16 = dplyr::case_when(
+      bdi_item_16 == 2 ~ 1,   # Recoding "2" to 1
+      bdi_item_16 == 3 ~ 2,   # Recoding "3" to 2
+      bdi_item_16 == 4 ~ 2,   # Recoding "4" to 2
+      bdi_item_16 == 5 ~ 3,   # Recoding "5" to 3
+      bdi_item_16 == 6 ~ 3,   # Recoding "6" to 3
+      TRUE ~ bdi_item_16      # Keep all other values unchanged
+    ),
+    bdi_item_18 = dplyr::case_when(
+      bdi_item_18 == 2 ~ 1,   
+      bdi_item_18 == 3 ~ 2,   
+      bdi_item_18 == 4 ~ 2,  
+      bdi_item_18 == 5 ~ 3,   
+      bdi_item_18 == 6 ~ 3,   
+      TRUE ~ bdi_item_18      
+    )
+  )
+
+# Confirm the recoding:
+table(data$bdi_item_16)
+
+# You can also score data with mutate. For example,
+data <- data %>%
+  dplyr::mutate(
+    sum_score_bdi = rowSums(
+      dplyr::select(., bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
+                    bdi_item_6, bdi_item_7, bdi_item_8, bdi_item_9, bdi_item_10,
+                    bdi_item_11, bdi_item_12, bdi_item_13, bdi_item_14, bdi_item_15,
+                    bdi_item_16, bdi_item_17, bdi_item_18, bdi_item_19, bdi_item_20,bdi_item_21))  
+  )
+# this will sum the bdi items and create a new variable ("sum_score_bdi") with the sum. 
+
+# Similarly, if you want an average, you would replace 'rowSums' with 'rowMeans':
+data <- data %>%
+  dplyr::mutate(mean_score_bdi = rowMeans(
+    dplyr::select(., bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
+                  bdi_item_6, bdi_item_7, bdi_item_8, bdi_item_9, bdi_item_10,
+                  bdi_item_11, bdi_item_12, bdi_item_13, bdi_item_14, bdi_item_15,
+                  bdi_item_16, bdi_item_17, bdi_item_18, bdi_item_19, bdi_item_20,
+                  bdi_item_21)))
+
+# There are multiple ways to accomplish the same things. For example, to get the same total_score, you can sum items directly: 
+data <- data %>%
+  dplyr::mutate(sum_three_item = bdi_item_1 + bdi_item_2 + bdi_item_3) # etc.
+
+# Just like before, you can instruct R to use the bdi items with a shortcut:
+data <- data %>%
+  mutate(shortcut_sum_score_bdi  = rowSums(across(starts_with("bdi_")))) 
+# Here, all of the columns that start with "bdi_" will be summed. 
+# Instead of 'starts_with,' you can also use ends_with("_bdi"), or contains("bdi") 
+
+summary(data$sum_score_bdi)
+summary(data$shortcut_sum_score_bdi) 
+
+# If you have missing data (NAs) and you use these above mutate functions (e.g., rowSums), the default is that people with missing data will *not* be included. So, if someone is missing item_2 but has item_1 & item_3, they will have NA in the total_score column. You can instruct R to include these people with "na.rm = TRUE" as the last clause. For example, 
+
+data <- data %>%
+  mutate(sum_score_bdi_updated = rowSums(across(starts_with("bdi")), na.rm = TRUE))
+
+summary(data$sum_score_bdi) # 90 NAs
+summary(data$sum_score_bdi_updated) # No NAs
+
+# You can do multiple operations at one time! For example, this creates a sum score variable and a mean score variable of items 1-4:
+data <- data %>%
+  dplyr::mutate(
+    sum_score_four_item = rowSums(dplyr::select(., bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4)),
+    mean_score_four_item = rowMeans(dplyr::select(., bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4))
+  )
+
+# ...and this creates a sum score variable, and then uses the sum score variable to create a new "cutoff" variable like we did above. 
+data <- data %>%
+  dplyr::mutate(
+    shortcut_sum_score_bdi = rowSums(across(starts_with("bdi_")), na.rm = TRUE),  # creating a sum score
+    total_score_cutoff = ifelse(shortcut_sum_score_bdi > 27, 1, 0)                # making a cutoff variable from the sum score
+  )
+
+# Just like before, you can chain functions together using the pipe (%>%) operator. 
+filtered_data <- data %>%
+  dplyr::mutate(
+    shortcut_sum_score_bdi = rowSums(across(starts_with("bdi_")), na.rm = TRUE),  # creating a sum score
+    total_score_cutoff = ifelse(shortcut_sum_score_bdi > 27, 1, 0)                # making a cutoff variable from the sum score
+  ) %>%
+  dplyr::filter(total_score_cutoff == 1) # chaining the "filter" function onto the same call.
+
+# To summarize data with dplyr, you use summarize() together with base R functions. For example, 
+data_summary <- data %>%
+  dplyr::summarize(
+    mean_bdi_total = mean(shortcut_sum_score_bdi, na.rm = TRUE), # Mean total score
+    sd_bdi_total = sd(shortcut_sum_score_bdi, na.rm = TRUE) # SD total score                      
+  )
+
+# Now, you access this summary by looking at your 'data_summary' object.
+data_summary
+
+# You can also summarize by grouping variables. To accomplish this, first use the group_by() function, and then chain on summarize(). 
+data_summary_by_gender <- data %>%
+  dplyr::group_by(gender) %>%
+  dplyr::summarize(
+    mean_bdi_total = mean(shortcut_sum_score_bdi, na.rm = TRUE), 
+    sd_bdi_total = sd(shortcut_sum_score_bdi, na.rm = TRUE) 
+  )
+
+data_summary_by_gender
+```
+
+# Summarize data
+```{r summarize}
+# Although you can summarize data with base R, there are great functions-packages for summarizing data! These include
+# describe from the Hmisc package
+# describe from psych
+# descr and dfSummary from summarytools
+
+if (!require("Hmisc")) {install.packages("Hmisc"); require("Hmisc")} 
+if (!require("psych")) {install.packages("psych"); require("psych")} 
+if (!require("summarytools")) {install.packages("summarytools"); require("summarytools")} 
+
+# Let's try them out!
+Hmisc::describe(data)
+psych::describe(data)
+psych::describeBy(data, data$gender) # the same thing as describe, but split by group (here, gender)
+summarytools::descr(data)
+dfSummary(data)
+
+# If we turn some of these summaries into objects, we can later save them. 
+summary_df <- psych::describe(data)
+View(summary_df)
+
+summary_df_gender <- psych::describeBy(data, data$gender) 
+View(summary_df_gender) 
+# When you view this object, you don't see a table. This happens because there are multiple tables included in the object, so the object becomes a list. Therefore, you can access each table in the list with $. 
+# For example, to access the female table and turn it into an object,
+summary_df_fem <- summary_df_gender$female
+```
+
+```{r saving}
+# To save your new dataset(s):
+# Make sure you are saving it in the right place. The place where your new files will be saved is called the "working directory."
+
+# Your current working directory is
+getwd()
+
+# To set your directory to a different folder, you would plug in the file path: 
+# setwd("C:/path/to/your/folder").
+
+# Create a folder called "01_Output". This folder will be created in your working directory. 
+dir.create("01_Output")
+
+# Now, you can save the data as a CSV in '01_Output':
+write.csv(data, # The dataset object that you want to save
+          "01_Output/Scored_data.csv") # The folder it should be saved in (within the working directory), and the name of the new file.
+
+# If you want the date to automatically be included in the file name (it's often helpful to know which version of your data is the most current!), you can instruct R to include the current date in the file name. 
+write.csv(data, paste0("01_Output/Scored_data_", Sys.Date(), ".csv")) 
+
+# To save in excel format, you use the 'write_xlsx' function from the 'writexl' package:
+if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
+
+write_xlsx(data, paste0("01_Output/Scored_data_", Sys.Date(), ".xlsx")) 
+
+# You can export your data for use in SPSS using the 'write_sav' function from the 'haven' package. 
+# If you don't have haven installed/loaded, 
+if (!require("haven")) {install.packages("haven"); require("haven")} 
+
+write_sav(data, paste0("01_Output/Scored_data_", Sys.Date(), ".sav"))
+
+# You can also save the data summary table objects! For example, 
+write.csv(summary_df, # The summary object from summary_df <- psych::describe(data)
+          paste0("01_Output/Summary_", Sys.Date(), ".csv")) 
+```
+
+```{r merging}
+# Another useful thing you can do with dplyr is merging different datasets together based on a common identifier. 
+
+# Let's make two data frames: 
+data_1 <- data.frame(
+  id = c(1, 2, 3, 4, 5),
+  name = c("Alice", "Bob", "Charlie", "David", "Eve"),
+  age = c(25, 30, 35, 40, 45)
+)
+
+data_2 <- data.frame(
+  id = c(3, 4, 5, 6, 7),
+  city = c("New York", "Los Angeles", "Chicago", "Houston", "Eugene"),
+  occupation = c("Engineer", "Artist", "Doctor", "Teacher", "Psychologist")
+)
+
+# 'id' is the common column to merge by. 
+
+
+# With these two data frames, you can: 
+
+# Use left_join(). 
+# This will keep all rows from data_1 and add the corresponding rows from data_2. If there is no match in data_2, it will return NA.
+merged_data_1 <- data_1 %>% left_join(data_2, by = "id") 
+View(merged_data_1) # Look at it
+
+# Use right_join(). 
+# This will keep all rows from data_2 and add the corresponding rows from data_1. If there is no match in data_1, it will return NA.
+merged_data_2 <- data_1 %>% right_join(data_2, by = "id")
+
+# use inner_join(). 
+# This will only keep rows where there is a match in both data_1 and data_2.
+merged_data_3 <- data_1 %>% inner_join(data_2, by = "id") 
+
+# use full_join(). 
+# This will keep all rows from both data_1 and data_2. If there is no match in one of the datasets, NA will be used for the missing columns.
+merged_data_4 <- data_1 %>% full_join(data_2, by = "id")
+
+# use anti_join(). 
+# This will keep only the rows from data_1 that do not have a match in data_2.
+merged_data_5a <- data_1 %>% anti_join(data_2, by = "id")
+
+# This will keep only the rows from data_2 that do not have a match in data_1.
+merged_data_5b <- data_2 %>% anti_join(data_1, by = "id")
+```
+
+```{r loops}
+# When you are doing the same thing a few times in a row, you can set a "loop" in R to automate the process.
+
+# For example, if you have three people that you want R to say "Hi" too, 
+
+# First, make a vector/list of the people
+names <- c("Lily", "Bob", "Dave") 
+
+# Then, instruct R that *for* each person [i] *in* the names vector, print "Hello".
+for (i in names) {
+  print(paste("Hi,", i)) 
+}
+# When you run this loop, R will yield "Hi, Lily" "Hi, Bob" & "Hi, Dave"
+
+# A simple mathematical loop is
+for (i in 1:5) {
+  print(i^2)
+}
+# This loop instructs R that 'for every number from 1 to 5, print the square of the number.' This is much more efficient then calculating the square for each number separately!
+
+# If you want to save the results of the loop as an object, you need to 1) initalize an empty vector, and 2) add your results to the vector. With the same loop as before, 
+
+squares <- c() # Initialize an empty vector to store the results of the loop. Here, the empty vector is called "squares"
+
+for (i in 1:5) {
+  squares <- c(squares, i^2) # add each "square" to the vector. 
+}
+
+# Now, you can access all of your results!
+squares
+
+# If you want a specific result, use square brackets (remember that $ is used to access elements from lists or data frames, while [] is used for vectors). To access the 3rd result, 
+squares[3]
+
+# Loops can be a very efficient way to automate data analysis. For example if you want to do three linear regressions - all with "depression" as the dependent variable, but with three different independent variables, you do not need to run the analysis three times! You can instruct R to do the analysis three times, each time with one of the independent variables. 
+```
+
