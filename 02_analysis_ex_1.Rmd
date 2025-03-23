@@ -1,0 +1,133 @@
+---
+title: "02_analysis_ex_1"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# An example of data analysis 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Packages
+```{r packages}
+# For this example, we'll use a user-friendly package for analysis with built in visualizations.
+
+if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")} # EGAnet is used for exploratory graph analysis (EGA)
+
+# When you use a new package for analysis, you can go to the 'reference manual' of the package to find the functions you want to use and a description of what each function needs as input. 
+
+# The reference manual for EGAnet is here: https://cran.r-project.org/web/packages/EGAnet/EGAnet.pdf
+
+# However, EGAnet has a user-friendly website version of a reference manual: https://r-ega.net/reference/index.html. This can help to get acclimated with function manuals.
+```
+
+# Data and directory
+```{r data}
+# Import the (toy) data that was saved from the 01_base_data script.
+data <- read.csv("01_Output/Scored_data.csv")
+
+# Filter the data to just the variables that are needed for analyses - all of the BDI-II items. 
+filtered_data <- dplyr::select(data, starts_with("bdi_"))
+
+# Confirm the variables in the filtered dataset
+colnames(filtered_data)
+
+# Create a folder to save the output
+dir.create("02_Output")
+```
+
+# Start analysis!
+```{r begin analysis}
+# To see the functions included in EGAnet, go to https://r-ega.net/reference/index.html. 
+# Here, use the 'EGA' function: https://r-ega.net/reference/EGA.html. 
+ega_object <- EGA(data = filtered_data, 
+                  corr = "auto", 
+                  model = "glasso", 
+                  algorithm = "walktrap",
+                  uni.method = "louvain",
+                  plot.EGA = FALSE,
+                  verbose = TRUE)
+
+# How many dimensions were identified with EGA?
+summary(ega_object)
+plot(ega_object) # https://r-ega.net/reference/EGAnet-plot.html
+plot(ega_object, layout = "circle")
+```
+
+```{r continue analysis}
+# Next, use the 'bootEGA' function to bootstrap EGA estimates
+# https://r-ega.net/reference/bootEGA.html
+
+boot_ega_object <- bootEGA(
+  data = filtered_data,
+  corr = "auto", 
+  model = "glasso", 
+  algorithm = "walktrap",
+  uni.method = "louvain",
+  iter = 100,
+  seed = 123456 
+)
+
+# Get summary statistics about this bootstrapped object. How many times did 1 dimension appear across the 100 bootstraps?
+summary(boot_ega_object)
+
+# Next, you can use the 'dimensionStability' function to see the item stability statistics
+# https://r-ega.net/reference/dimensionStability.html
+boot_ega_object_dimension_stability <- dimensionStability(boot_ega_object)
+
+# Item stability indicates how often an item replicates in their designated EGA dimension
+# How many times did each item appear in its dimension across 100 bootstraps?
+boot_ega_object_dimension_stability
+```
+
+```{r save figures}
+# To save figures, 
+# The pdf() function lets you direct your plot output to a PDF file
+# The png() function lets you direct your plot output to a PNG file
+# Begin with one of these functions, and then plot the figure (or run an object of the figure).
+# dev.off() is used to close the graphics device. This step finalizes and saves the plot to the file (PDF or PNG).
+
+# For example,
+
+pdf("02_Output/EGA_plot.pdf", width = 10, height = 10) 
+# Use pdf() to specify where the figure should be saved, the name of the file. and the height/width 
+# (It can take trial and error to find the size you like!)
+
+plot(ega_object) 
+# Plot the object
+
+dev.off() 
+# Finalize the PDF. Now the PDF figure will be in your output folder!
+
+pdf("02_output/EGA_item_stability.pdf", width = 10, height = 10)
+dimensionStability(boot_ega_object)
+dev.off()
+
+# To save the figures as a PNG file, 
+
+png("02_Output/EGA_plot.png", width = 1000, height = 1000) 
+# Use png() to specify where the figure should be saved (name of the file and the size of the image)
+# 'width' and 'height' are in pixels. 
+
+plot(ega_object) 
+
+dev.off() 
+
+png("02_Output/EGA_item_stability.png", width = 1000, height = 1000)
+dimensionStability(boot_ega_object)
+dev.off()
+```
+
+# More on EGA (e.g., publications to see what is typically reported, workflows, etc.)
+```{r readings}
+# Christensen, A. P., & Golino, H. (2021). Estimating the stability of psychological dimensions via bootstrap exploratory graph analysis: A Monte Carlo simulation and tutorial. Psych, 3(3), 479–500. doi: 10.3390/psych3030032
+
+# Golino, H., Lillard, A. S., Becker, I., & Christensen, A. P. (2021). Investigating the structure of the Children’s Concentration and Empathy Scale using exploratory graph analysis. Psychological Test Adaptation and Development, 2(1), 35–49. doi: 10.1027/2698-1866/a000008
+
+# Golino, H., & Epskamp, S. (2017). Exploratory graph analysis: A new approach for estimating the number of dimensions in psychological research. PLoS ONE, 12(6), e0174035. doi: 10.1371/journal.pone.0174035
+
+# Golino, H., & Demetriou, A. (2017). Estimating the dimensionality of intelligence like data using Exploratory Graph Analysis. Intelligence, 62, 54–70. doi: 10.1016/j.intell.2017.02.007
+```
+
