@@ -73,7 +73,8 @@ round_half_up(1.25, digits = 1)
 2 >= 8   # greater than or equal to
 2 <= 8   # less than or equal to
 2 == 8   # equals (you need two equal signs!)
-2 != 8   # does not equal. # In general, the '!' operator inverts the condition. So here, '!=' means does not equal. 
+2 != 8   # does not equal. # In general, the '!' operator inverts the condition. So here, '!=' means does not equal.
+2:8      # ':' means everything from 2 to 8.
 
 # For other examples of !,
 !TRUE  # TRUE becomes FALSE
@@ -98,6 +99,7 @@ y1
 # You can also instruct R to 'print' an object or information. This can sometimes have the same result as running the object itself. 
 print(x1)
 print("Hello, R!")
+paste("Extraversion ~", "Neuroticism") # Notice how this outputs 'Extraversion ~ Neuroticism' as one phrase. paste() joins the two!
 
 # Conditional logic with 'if-else' statements are often used in data manipulation and analysis. For an example,
 x <- 10
@@ -139,7 +141,12 @@ if (x > 5 & y < 10) {  # The AND operator (are both conditions true?)
 
 # We can save lists of information. These lists, called vectors, are created with the function "c()"
 # "c()" means concatenate. i.e., bind all the elements together. 
-# There are a few types of vectors. The main ones to know are: numeric (this stores numbers), character (this stores text), logical (this only stores 'TRUE' and 'FALSE'), and categorical (this stores information as factors).
+# There are a few types of vectors. The main ones to know are: 
+# numeric (this stores numbers), 
+# character (this stores text), 
+# logical (this only stores 'TRUE' and 'FALSE'), and 
+# categorical (this stores information as factors).
+
 number_vector <- c(3, 1, 4, 1, 5, 9)
 character_vector <- c("strawberry", "apple", "milkshake")
 logical_vector <- c(TRUE, FALSE, TRUE, FALSE)
@@ -155,6 +162,7 @@ class(category_vector)
 # You can also check the internal structure of an R object or vector with 'str()'
 str(number_vector)
 str(y1) # The object created above
+
 
 # We can do math functions with the numeric vector. Functions take input, complete "tasks" or steps, and return output. 
 # For example, 
@@ -186,8 +194,17 @@ anyNA(number_vector)      # TRUE if there are any missing (NA) values
 is.na(number_vector)      # Logical vector showing TRUE for missing values, and FALSE for non-missing values.
 
 # To access a specific value or values in a vector, use square brackets []:
-number_vector[2]  # Enclose the position of the value you want to see in square brackets. [2] will yield the 2nd number in the vector
+number_vector[2]   # [2] will return the 2nd number in the vector
+number_vector[-2]  # Returns everything besides the second value element. 
+
+number_vector[c(2,4)]  # Returns the second and fourth elements. You need to create a vector 'c()' to hold more then one value
+number_vector[-c(2,4)] # Returns everything besides the second and fourth elements. 
+
+number_vector[2:4]    # Returns elements 2-4. You do not need c() because ':' creates a vector ('from two to four')
+number_vector[-(2:4)] # Returns everything besides elements 2-4. 
+
 number_vector[number_vector > 3] # Enclose a condition in the brackets. [ > 3] will yield all values in the vector that > 3.
+
 
 # Here, we make another numeric vector, but we add in a non-numeric piece of information.  
 mixed_vector <- c(3, 1, 4, 1, 5, 9, "puppy")
@@ -318,21 +335,21 @@ square_cube_function_object$cube_result
 # Import data
 ```{r data}
 # This is the basic argument to import data.
-data <- read.csv("01_data.csv") # This is a toy dataset that you can create in '02_simulate_data.Rmd'
+data <- read.csv("02_data.csv") # This is a toy dataset that you can create in '02_simulate_data.Rmd'
 
 # There are a few things I do with every dataset:
-data <- read.csv("01_data.csv", 
+data <- read.csv("02_data.csv", 
                  header = TRUE, # Setting header = TRUE tells R to read the top row as a header instead of an observation/participant
                  sep = ",",     # The sep argument = "," is for csv so R knows how to read commas and make rows/columns
                  na.strings = c("", "NA", "N/A", "n/a", "N/a", "-99", -99)) # na.strings is a list of possible ways that people code missing values. This tells R that an empty cell, NA, N/A, n/a, and -99 are all codes for missing data!
 
 # If you are importing an excel document, you can use the 'read_excel' function from the 'readxl' package. 
 if (!require("readxl")) {install.packages("readxl"); require("readxl")} 
-# data <- read_excel("01_data.xlsx") 
+# data <- read_excel("02_data.xlsx") 
 
 # If you are importing an SAV file, you can use the 'read_sav' function from the 'haven' package. 
 if (!require("haven")) {install.packages("haven"); require("haven")} 
-# data <- read_sav("01_data.sav") 
+# data <- read_sav("02_data.sav") 
 
 View(data)     # Look at your data
 head(data)     # Look at the first few rows of your data
@@ -342,13 +359,13 @@ colSums(is.na(data)) # How many NAs are in each column?
 summary(data)  # summarize all variables in the data.
 
 str(data)
-# We want the bdi items to be numeric. 
 
 # You 'call' specific columns with $ for operations. For example,
 summary(data$bdi_item_1) 
 sd(data$bdi_item_1)               # But what happens here?
 sd(data$bdi_item_1, na.rm = TRUE) # Don't forget that we often need 'na.rm = TRUE' to ignore missing data! 
-# There are some times that you might want to set it to FALSE. For example, if you are summing scale items and don't want people who have missing items to have a sum. 
+# There are some times that you might want to set it to FALSE. 
+# For example, if you are summing scale items and don't want people who have missing items to have a sum. 
 
 # If you want to see how many people have a certain score or level of something, you can look at a table: 
 table(data$bdi_item_1) 
@@ -365,7 +382,8 @@ data$bdi_item_9 <- as.numeric(data$bdi_item_9)
 # data$New_bdi_item_9 <- as.numeric(data$bdi_item_9)
 # Now, your 'bdi_item_9' will not be directly changed, and you will have 'New_bdi_item_9' in your dataset.
 
-# You can subset the data by indexing columns and rows with square brackets. This follows the form [rows, columns]
+# You can subset the data by indexing columns and rows with square brackets. 
+# This follows the form [rows, columns]
 subset_data_1 <- data[, c("bdi_item_1", "bdi_item_2")] # This specified columns (by name), but no rows. All rows will be included. 
 subset_data_2 <- data[, c(1, 2)]  # This specified columns (by number), but no rows. All rows will be included.
 subset_data_3 <- data[, 1:3] # The ':' symbol instructs R to select from the first value to the last value. 
@@ -760,6 +778,8 @@ squares
 
 # If you want a specific result, use square brackets (remember that $ is used to access elements from lists or data frames, while [] is used for vectors). To access the 3rd result, 
 squares[3]
+
+# Try to make a loop just like 'squares' above, but instead of squaring then number, just add +1.
 
 # Loops can be a very efficient way to automate data analysis. For example if you want to do three linear regressions - all with "depression" as the dependent variable, but with three different independent variables, you do not need to run the analysis three times! You can instruct R to do the analysis three times, each time with one of the independent variables. 
 ```

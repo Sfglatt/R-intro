@@ -80,6 +80,6 @@ cor(full_data_bdi_with_NAs[, 5:ncol(full_data_bdi_with_NAs)], use = "pairwise.co
 ```
 
 ```{r save data}
-write.csv(full_data_bdi_with_NAs, "01_data.csv")
+write.csv(full_data_bdi_with_NAs, "02_data.csv")
 ```
 

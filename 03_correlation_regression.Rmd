@@ -270,3 +270,48 @@ anova_table <- apa.aov.table(
 report(anova_education)
 ```
 
+# Try an analysis loop
+```{r loop}
+# Make a vector that you want the loop to go through
+ivs <- c("neuroticism", "openness", "conscientious")
+
+# Loop through each independent variable in the ivs vector
+for (iv in ivs) {
+  
+  # Run the linear regression model with the same outcome variable but different predictor variable
+  model <- lm(paste("extraversion ~", iv), data = bfi)
+  
+  # Remember that paste() joins two strings together!
+  # So here, paste("extraversion ~", "neuroticism") becomes "extraversion ~ neuroticism"!
+  
+  # Get a summary of that model
+  print(summary(model))
+}
+
+# This is nice, but now let's make a loop that saves the results: 
+
+models_list <- list() # Initialize an empty list to store the models
+
+for (iv in ivs) {
+  
+  model <- lm(paste("extraversion ~", iv), data = bfi)
+  
+  # Now, store the model in the list
+  models_list[[iv]] <- model
+  
+  print(summary(model))
+}
+
+# Now you have a list of models:
+models_list
+
+# To access a specific model in the list, use $
+models_list$openness
+
+# Save one of the models as its own object
+openness_model <- models_list$openness
+
+# And then continue as usual!
+summary(openness_model)
+```
+
