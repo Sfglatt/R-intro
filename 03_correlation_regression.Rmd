@@ -1,0 +1,158 @@
+---
+title: "03_correlation_regression"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Packages
+```{r packages}
+if (!require("apaTables")) {install.packages("apaTables"); require("apaTables")} 
+# This packages creates APA-style publication-ready tables for basic analyses (e.g., correlations, regression, ANOVA)
+# https://dstanley4.github.io/apaTables/articles/apaTables.html
+
+if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
+if (!require("ggcorrplot")) {install.packages("ggcorrplot"); require("ggcorrplot")} 
+if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
+# Visualize a correlation matrix
+# For corrplot: https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+# For ggcorrplot: https://rpubs.com/Alema/1000474
+# For GGally: https://ggobi.github.io/ggally/articles/ggpairs.html
+
+if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
+# Select data
+
+if (!require("performance")) {install.packages("performance"); require("performance")} 
+if (!require("see")) {install.packages("see"); require("see")} 
+# These packages are great to visualize linear regression model assumptions. 
+```
+
+# Data and directory
+```{r data}
+# Import the (toy) data that was saved from the 02_base_data script.
+data <- read.csv("02_Output/Scored_data.csv")
+
+# Filter the data to just the variables that are needed for analyses. Let's use the first 10 BDI-II items (arbitrary choice). 
+filtered_data <- dplyr::select(data, 
+                                bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
+                                bdi_item_6, bdi_item_7, bdi_item_8, bdi_item_9, bdi_item_10)
+
+# Confirm the variables in the filtered dataset
+colnames(filtered_data)
+
+# Create a folder to save the output
+dir.create("03_Output")
+```
+
+# Correlation matrix
+```{r matrix}
+# Use apaTables!
+
+# Let's make the correlationmatrix + save this table in APA format.
+# For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.cor.table
+
+Matrix <- apa.cor.table(filtered_data, 
+                        filename = "03_Output/Correlation_matrix.doc",
+                        table.number = 1, 
+                        show.conf.interval = TRUE, 
+                        show.sig.stars = TRUE, 
+                        landscape = TRUE)
+
+# Look at it
+Matrix
+
+# Visualize the matrix with the corrplot package
+# https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+
+# corrplot needs a basic correlation matrix as input. 
+# The cor() function can provide the input.
+corr_mat <- cor(filtered_data,
+                method = 'pearson', # The default method is pearson, so if you don't include this line you will get identical results.
+                use = 'pairwise.complete.obs') # Use complete observations = missing data will be deleted.
+
+# Print the correlation matrix
+corr_mat
+
+# You can also calculate a single correlation between two variables
+cor(filtered_data$bdi_item_1, filtered_data$bdi_item_2, use = 'pairwise.complete.obs')
+
+# To get the p-value, use cor.test()
+?cor.test
+cor.test(filtered_data$bdi_item_1, filtered_data$bdi_item_2, use = 'pairwise.complete.obs')
+
+# Visualize the matrix with 'corrplot':
+corrplot(corr_mat) # The default corrplot function provides the correlation strength through shape size
+corrplot(corr_mat, method = 'number') # you can get numbers in the matrix by setting method = 'number'
+corrplot.mixed(corr_mat) # ...and corrplot.mixed() will give you both the shapes and and numbers 
+corrplot(corr_mat, type = "lower", tl.col = "black", tl.srt = 45) # Change some more features. There are much more details you can change (all in the html above)!
+
+# Alternatively, visualize the matrix with 'ggcorrplot'
+# The corr_mat object above can be the input:
+ggcorrplot(corr_mat) # The default method for the shape is a square
+ggcorrplot(corr_mat, method = "circle")
+ggcorrplot(corr_mat, # Change other settings
+ method = "square", 
+ type = "lower",
+ outline.color = "white",
+# lab = TRUE, # If you want numbers as well as colors
+ lab_size = 2)
+
+# For correlations as scatterplots, distributions, and printed corrleation coefficients
+ggpairs(filtered_data, columns = 1:4, title = "Correlogram with ggpairs()") 
+# For more settings: https://ggobi.github.io/ggally/articles/ggpairs.html
+
+# To save the visualization(s), 
+# The pdf() function lets you direct your plot output to a PDF file
+# The png() function lets you direct your plot output to a PNG file
+# Begin with one of these functions, and then plot the figure (or run an object of the figure).
+# dev.off() is used to close the graphics device. This step finalizes and saves the plot to the file (PDF or PNG).
+
+# Here,
+pdf("03_Output/Corr_matrix_figure.pdf", width = 10, height = 10) 
+# Use pdf() to specify where the figure should be saved, the name of the file. and the height/width 
+# (It can take trial and error to find the size you like!)
+
+corrplot(corr_mat, type = "lower", tl.col = "black", tl.srt = 45) 
+ # Visualize/plot the matrix with corrplot
+
+dev.off() 
+# Finalize the PDF. Now the PDF figure will be in your output folder!
+
+# Similarly, for a PNG, 
+png("03_Output/Corr_matrix_figure.png", width = 1000, height = 1000) 
+# Use png() to specify where the figure should be saved (name of the file and the size of the image)
+# 'width' and 'height' are in pixels. 
+
+corrplot(corr_mat, type = "lower", tl.col = "black", tl.srt = 45)
+
+dev.off() 
+```
+
+# Linear regression
+```{r lm}
+# The base linear regression function, lm(), is included in base R. 
+# The form is lm(outcome_variable ~ predictor_variable_1 + predictor_variable_1, data = your_dataset). 
+?lm
+# For example, 
+regr_model_one <- lm(bdi_item_9 ~ bdi_item_1, data = filtered_data) # fit regression model
+
+# Obtain a summary of your model
+summary(regr_model_one)
+
+# Check the linear model assumptions. The 'check_model' function from the performance package is excellent for this:  
+check_model(regr_model_one)
+
+# Let's make an APA table:
+# For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.reg.table
+Regression_table <- apa.reg.table(regr_model_one, 
+                                  filename = "03_Output/Regression_table.doc", 
+                                  table.number = 2)
+
+# Look at it
+Regression_table
+```
+

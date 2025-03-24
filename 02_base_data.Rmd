@@ -1,5 +1,5 @@
 ---
-title: "01_base_data"
+title: "02_base_data"
 author: "Sglatt"
 date: "`r Sys.Date()`"
 output: html_document
@@ -636,30 +636,30 @@ getwd()
 # To set your directory to a different folder, you would plug in the file path: 
 # setwd("C:/path/to/your/folder").
 
-# Create a folder called "01_Output". This folder will be created in your working directory. 
-dir.create("01_Output")
+# Create a folder called "02_Output". This folder will be created in your working directory. 
+dir.create("02_Output")
 
-# Now, you can save the data as a CSV in '01_Output':
+# Now, you can save the data as a CSV in '02_Output':
 write.csv(data, # The dataset object that you want to save
-          "01_Output/Scored_data.csv") # The folder it should be saved in (within the working directory), and the name of the new file.
+          "02_Output/Scored_data.csv") # The folder it should be saved in (within the working directory), and the name of the new file.
 
 # If you want the date to automatically be included in the file name (it's often helpful to know which version of your data is the most current!), you can instruct R to include the current date in the file name. 
-write.csv(data, paste0("01_Output/Scored_data_", Sys.Date(), ".csv")) 
+write.csv(data, paste0("02_Output/Scored_data_", Sys.Date(), ".csv")) 
 
 # To save in excel format, you use the 'write_xlsx' function from the 'writexl' package:
 if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
 
-write_xlsx(data, paste0("01_Output/Scored_data_", Sys.Date(), ".xlsx")) 
+write_xlsx(data, paste0("02_Output/Scored_data_", Sys.Date(), ".xlsx")) 
 
 # You can export your data for use in SPSS using the 'write_sav' function from the 'haven' package. 
 # If you don't have haven installed/loaded, 
 if (!require("haven")) {install.packages("haven"); require("haven")} 
 
-write_sav(data, paste0("01_Output/Scored_data_", Sys.Date(), ".sav"))
+write_sav(data, paste0("02_Output/Scored_data_", Sys.Date(), ".sav"))
 
 # You can also save the data summary table objects! For example, 
 write.csv(summary_df, # The summary object from summary_df <- psych::describe(data)
-          paste0("01_Output/Summary_", Sys.Date(), ".csv")) 
+          paste0("02_Output/Summary_", Sys.Date(), ".csv")) 
 ```
 
 ```{r merging}

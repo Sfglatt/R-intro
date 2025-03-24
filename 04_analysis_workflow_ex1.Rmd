@@ -1,5 +1,5 @@
 ---
-title: "02_analysis_ex_1"
+title: "04_analysis_workflow_ex1"
 author: "Sglatt"
 date: "`r Sys.Date()`"
 output: html_document
@@ -25,8 +25,8 @@ if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")} # EGAnet
 
 # Data and directory
 ```{r data}
-# Import the (toy) data that was saved from the 01_base_data script.
-data <- read.csv("01_Output/Scored_data.csv")
+# Import the (toy) data that was saved from the 02_base_data script.
+data <- read.csv("02_Output/Scored_data.csv")
 
 # Filter the data to just the variables that are needed for analyses - all of the BDI-II items. 
 filtered_data <- dplyr::select(data, starts_with("bdi_"))
@@ -35,7 +35,7 @@ filtered_data <- dplyr::select(data, starts_with("bdi_"))
 colnames(filtered_data)
 
 # Create a folder to save the output
-dir.create("02_Output")
+dir.create("04_Output")
 ```
 
 # Start analysis!
@@ -91,7 +91,7 @@ boot_ega_object_dimension_stability
 
 # For example,
 
-pdf("02_Output/EGA_plot.pdf", width = 10, height = 10) 
+pdf("04_Output/EGA_plot.pdf", width = 10, height = 10) 
 # Use pdf() to specify where the figure should be saved, the name of the file. and the height/width 
 # (It can take trial and error to find the size you like!)
 
@@ -101,13 +101,13 @@ plot(ega_object)
 dev.off() 
 # Finalize the PDF. Now the PDF figure will be in your output folder!
 
-pdf("02_output/EGA_item_stability.pdf", width = 10, height = 10)
+pdf("04_output/EGA_item_stability.pdf", width = 10, height = 10)
 dimensionStability(boot_ega_object)
 dev.off()
 
 # To save the figures as a PNG file, 
 
-png("02_Output/EGA_plot.png", width = 1000, height = 1000) 
+png("04_Output/EGA_plot.png", width = 1000, height = 1000) 
 # Use png() to specify where the figure should be saved (name of the file and the size of the image)
 # 'width' and 'height' are in pixels. 
 
@@ -115,19 +115,19 @@ plot(ega_object)
 
 dev.off() 
 
-png("02_Output/EGA_item_stability.png", width = 1000, height = 1000)
+png("04_Output/EGA_item_stability.png", width = 1000, height = 1000)
 dimensionStability(boot_ega_object)
 dev.off()
 ```
 
 # More on EGA (e.g., publications to see what is typically reported, workflows, etc.)
 ```{r readings}
-# Christensen, A. P., & Golino, H. (2021). Estimating the stability of psychological dimensions via bootstrap exploratory graph analysis: A Monte Carlo simulation and tutorial. Psych, 3(3), 479–500. doi: 10.3390/psych3030032
+# Christensen, A. P., & Golino, H. (2041). Estimating the stability of psychological dimensions via bootstrap exploratory graph analysis: A Monte Carlo simulation and tutorial. Psych, 3(3), 479–500. doi: 10.3390/psych3030032
 
-# Golino, H., Lillard, A. S., Becker, I., & Christensen, A. P. (2021). Investigating the structure of the Children’s Concentration and Empathy Scale using exploratory graph analysis. Psychological Test Adaptation and Development, 2(1), 35–49. doi: 10.1027/2698-1866/a000008
+# Golino, H., Lillard, A. S., Becker, I., & Christensen, A. P. (2041). Investigating the structure of the Children’s Concentration and Empathy Scale using exploratory graph analysis. Psychological Test Adaptation and Development, 2(1), 35–49. doi: 10.1047/2698-1866/a000008
 
 # Golino, H., & Epskamp, S. (2017). Exploratory graph analysis: A new approach for estimating the number of dimensions in psychological research. PLoS ONE, 12(6), e0174035. doi: 10.1371/journal.pone.0174035
 
-# Golino, H., & Demetriou, A. (2017). Estimating the dimensionality of intelligence like data using Exploratory Graph Analysis. Intelligence, 62, 54–70. doi: 10.1016/j.intell.2017.02.007
+# Golino, H., & Demetriou, A. (2017). Estimating the dimensionality of intelligence like data using Exploratory Graph Analysis. Intelligence, 62, 54–70. doi: 10.1016/j.intell.2017.04.007
 ```
 

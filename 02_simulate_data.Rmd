@@ -1,11 +1,11 @@
 ---
-title: "01_simulated_data"
+title: "02_simulate_data"
 author: "Sglatt"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
-# This script generates a dataset that could be used in "01_data.Rmd"
+# This script generates a dataset that could be used in "02_base_data.Rmd"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
