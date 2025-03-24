@@ -186,7 +186,7 @@ anyNA(number_vector)      # TRUE if there are any missing (NA) values
 is.na(number_vector)      # Logical vector showing TRUE for missing values, and FALSE for non-missing values.
 
 # To access a specific value or values in a vector, use square brackets []:
-number_vector[2]  # Enclose the position of the value you want to see in square brackets. [1] will yield the 2nd number in the vector
+number_vector[2]  # Enclose the position of the value you want to see in square brackets. [2] will yield the 2nd number in the vector
 number_vector[number_vector > 3] # Enclose a condition in the brackets. [ > 3] will yield all values in the vector that > 3.
 
 # Here, we make another numeric vector, but we add in a non-numeric piece of information.  
@@ -198,7 +198,10 @@ class(mixed_vector) # Now, the entire vector is considered a 'character' instead
 mixed_vector * 10  
 sum(mixed_vector)
 
-# You can change vector types in R. 'as.numeric' will coerce a vector to be numeric, and 'as.character' will coerce a vector to a character.
+# You can change vector types in R. 
+# 'as.numeric' will coerce a vector to be numeric, 
+# 'as.character' will coerce a vector to a character, 
+# 'as.factor' will coerce a vector to be a factor.
 mixed_vector <- as.numeric(mixed_vector) # You will get a warning that NAs were introduced. This is because "puppy" becomes NA. 
 
 # Now, our operators will work! For the "NA" value, the result will also be NA.
@@ -314,8 +317,10 @@ square_cube_function_object$cube_result
 
 # Import data
 ```{r data}
-data <- read.csv("01_data.csv") # This is the basic call to import data. There are a few things I do with every dataset:
+# This is the basic argument to import data.
+data <- read.csv("01_data.csv") # This is a toy dataset that you can create in '02_simulate_data.Rmd'
 
+# There are a few things I do with every dataset:
 data <- read.csv("01_data.csv", 
                  header = TRUE, # Setting header = TRUE tells R to read the top row as a header instead of an observation/participant
                  sep = ",",     # The sep argument = "," is for csv so R knows how to read commas and make rows/columns
@@ -351,6 +356,14 @@ table(data$bdi_item_1)
 
 # If you want to see how many people chose each item by another characteristic, you can make a table with both variables. For example, if you want to see how many people chose each response in this item split by gender, you can run 
 table(data$bdi_item_1, data$demo_2)
+
+# Just like the vectors, you can change columns to numeric/character/factor with as.numeric(), as.factor(), and as.numeric()
+# For example, to change bdi_item_9 to numeric, 
+data$bdi_item_9 <- as.numeric(data$bdi_item_9)
+
+# If you want a NEW item 9 which is numeric, just change the name of the item. For example, 
+# data$New_bdi_item_9 <- as.numeric(data$bdi_item_9)
+# Now, your 'bdi_item_9' will not be directly changed, and you will have 'New_bdi_item_9' in your dataset.
 
 # You can subset the data by indexing columns and rows with square brackets. This follows the form [rows, columns]
 subset_data_1 <- data[, c("bdi_item_1", "bdi_item_2")] # This specified columns (by name), but no rows. All rows will be included. 
@@ -390,7 +403,12 @@ subset_data_6b <- data[data$bdi_item_3 > 1 & data$bdi_item_6 < 3, ] # You can se
 items_subset_1a <- dplyr::select(data, starts_with("bdi_"))
 
 # To select without a helper function, 
-items_subset_1 <- dplyr::select(data, bdi_item_1, bdi_item_2, bdi_item_3)
+items_subset_1b <- dplyr::select(data, bdi_item_1, bdi_item_2, bdi_item_3)
+# This subset now includes just bdi items 1, 2, and 3.
+
+# If you want to exclude columns, it is the same 'select' argument - just put a '-' before the variable name. 
+items_subset_1c <- dplyr::select(data, -bdi_item_1, -bdi_item_2, -bdi_item_3)
+# This subset now includes the full dataset besides bdi items 1, 2, and 3.
 
 # To filter the dataset, follow the form "dplyr::filter(data, condition)"
 
@@ -517,7 +535,8 @@ table(data$bdi_item_16)
 data <- data %>%
   dplyr::mutate(
     sum_score_bdi = rowSums(
-      dplyr::select(., bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
+      dplyr::select(., # The ., tells dplyr to use the 'data' object. You can also use the name of the dataset there instead
+                    bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
                     bdi_item_6, bdi_item_7, bdi_item_8, bdi_item_9, bdi_item_10,
                     bdi_item_11, bdi_item_12, bdi_item_13, bdi_item_14, bdi_item_15,
                     bdi_item_16, bdi_item_17, bdi_item_18, bdi_item_19, bdi_item_20,bdi_item_21))  

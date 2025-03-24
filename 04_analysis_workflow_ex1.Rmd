@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-# An example of data analysis 
+# An example of data analysis workflow
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -25,14 +25,20 @@ if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")} # EGAnet
 
 # Data and directory
 ```{r data}
-# Import the (toy) data that was saved from the 02_base_data script.
-data <- read.csv("02_Output/Scored_data.csv")
+# R and some packages come with some built in datasets! To see them, run the function data()
+data()
 
-# Filter the data to just the variables that are needed for analyses - all of the BDI-II items. 
-filtered_data <- dplyr::select(data, starts_with("bdi_"))
+# For this script, we'll use the 'bfi' dataset from the 'psych' package, which has 25 personality items. 
+# For information about this dataset: https://www.personality-project.org/r/html/bfi.html
 
-# Confirm the variables in the filtered dataset
-colnames(filtered_data)
+# To load it, use the data() function
+data(bfi)
+
+# Look at the dataset: 
+View(bfi)
+
+# For this analysis, filter the dataset to just include the scale items. (Meaning, just exclude the demographic variables)
+bfi_items <- dplyr::select(bfi, -age, -education, -gender)
 
 # Create a folder to save the output
 dir.create("04_Output")
@@ -42,7 +48,7 @@ dir.create("04_Output")
 ```{r begin analysis}
 # To see the functions included in EGAnet, go to https://r-ega.net/reference/index.html. 
 # Here, use the 'EGA' function: https://r-ega.net/reference/EGA.html. 
-ega_object <- EGA(data = filtered_data, 
+ega_object <- EGA(data = bfi_items, 
                   corr = "auto", 
                   model = "glasso", 
                   algorithm = "walktrap",
@@ -61,7 +67,7 @@ plot(ega_object, layout = "circle")
 # https://r-ega.net/reference/bootEGA.html
 
 boot_ega_object <- bootEGA(
-  data = filtered_data,
+  data = bfi_items,
   corr = "auto", 
   model = "glasso", 
   algorithm = "walktrap",
@@ -91,7 +97,7 @@ boot_ega_object_dimension_stability
 
 # For example,
 
-pdf("04_Output/EGA_plot.pdf", width = 10, height = 10) 
+pdf("04_Output/EGA_plot.pdf", width = 7, height = 7) 
 # Use pdf() to specify where the figure should be saved, the name of the file. and the height/width 
 # (It can take trial and error to find the size you like!)
 
@@ -101,13 +107,13 @@ plot(ega_object)
 dev.off() 
 # Finalize the PDF. Now the PDF figure will be in your output folder!
 
-pdf("04_output/EGA_item_stability.pdf", width = 10, height = 10)
+pdf("04_output/EGA_item_stability.pdf", width = 7, height = 7)
 dimensionStability(boot_ega_object)
 dev.off()
 
 # To save the figures as a PNG file, 
 
-png("04_Output/EGA_plot.png", width = 1000, height = 1000) 
+png("04_Output/EGA_plot.png", width = 700, height = 700) 
 # Use png() to specify where the figure should be saved (name of the file and the size of the image)
 # 'width' and 'height' are in pixels. 
 
@@ -115,7 +121,7 @@ plot(ega_object)
 
 dev.off() 
 
-png("04_Output/EGA_item_stability.png", width = 1000, height = 1000)
+png("04_Output/EGA_item_stability.png", width = 700, height = 700)
 dimensionStability(boot_ega_object)
 dev.off()
 ```

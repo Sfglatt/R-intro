@@ -26,23 +26,54 @@ if (!require("GGally")) {install.packages("GGally"); require("GGally")}
 if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
 # Select data
 
+if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
+# Linear regression model assumption tests
+# https://cran.r-project.org/web/packages/rempsyc/vignettes/assumptions.html
+
 if (!require("performance")) {install.packages("performance"); require("performance")} 
 if (!require("see")) {install.packages("see"); require("see")} 
 # These packages are great to visualize linear regression model assumptions. 
+
+if (!require("psych")) {install.packages("psych"); require("psych")} 
+# For data
+
+if (!require("report")) {install.packages("report"); require("report")} 
+# To interpret basic analysis objects!
+# # https://www.rdocumentation.org/packages/report/versions/0.6.0
 ```
 
 # Data and directory
 ```{r data}
-# Import the (toy) data that was saved from the 02_base_data script.
-data <- read.csv("02_Output/Scored_data.csv")
+# R and some packages come with some built in datasets! To see them, run the function data()
+data()
 
-# Filter the data to just the variables that are needed for analyses. Let's use the first 10 BDI-II items (arbitrary choice). 
-filtered_data <- dplyr::select(data, 
-                                bdi_item_1, bdi_item_2, bdi_item_3, bdi_item_4, bdi_item_5,
-                                bdi_item_6, bdi_item_7, bdi_item_8, bdi_item_9, bdi_item_10)
+# For this script, we'll use the 'bfi' dataset from the 'psych' package, which has 25 personality items. 
+# For information about this dataset: https://www.personality-project.org/r/html/bfi.html
 
-# Confirm the variables in the filtered dataset
-colnames(filtered_data)
+# To load it, use the data() function
+data(bfi)
+
+# Look at the dataset: 
+View(bfi)
+
+# The dataset has items, but we want total scores. If you look at the dataset documentation, it provides code to score the items. 
+keys.list <- list(agree = c("-A1","A2","A3","A4","A5"),
+                  conscientious = c("C1","C2","C3","-C4","-C5"),
+                  extraversion = c("-E1","-E2","E3","E4","E5"),
+                  neuroticism = c("N1","N2","N3","N4","N5"), 
+                  openness = c("O1","-O2","O3","O4","-O5")) 
+scores <- scoreItems(keys.list, bfi, min = 1, max = 6)  # or just use the keys.list
+View(scores) # When you view the 'scores' object, you will see that it is a list. We want to access the 'scores' element from the list.
+View(scores$scores)
+
+# Make the 'scores' dataframe into an object
+data_scores <- scores$scores
+
+# How do we combine the scores dataframe with the 'bfi' dataframe? 
+# Since the two datasets have the same number of rows and are aligned row-wise, you can use the 'cbind()' function to bind the columns together. This just adds columns from the 'scores' dataset into the 'bfi' dataset: 
+bfi <- cbind(bfi, data_scores)
+
+View(bfi)
 
 # Create a folder to save the output
 dir.create("03_Output")
@@ -55,7 +86,12 @@ dir.create("03_Output")
 # Let's make the correlationmatrix + save this table in APA format.
 # For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.cor.table
 
-Matrix <- apa.cor.table(filtered_data, 
+# First, we should filter the dataset to just include the total scores. 
+colnames(bfi)
+bfi_filtered <- bfi %>% 
+  dplyr::select(conscientious, extraversion, neuroticism, openness)
+
+Matrix <- apa.cor.table(bfi_filtered, 
                         filename = "03_Output/Correlation_matrix.doc",
                         table.number = 1, 
                         show.conf.interval = TRUE, 
@@ -70,7 +106,7 @@ Matrix
 
 # corrplot needs a basic correlation matrix as input. 
 # The cor() function can provide the input.
-corr_mat <- cor(filtered_data,
+corr_mat <- cor(bfi_filtered,
                 method = 'pearson', # The default method is pearson, so if you don't include this line you will get identical results.
                 use = 'pairwise.complete.obs') # Use complete observations = missing data will be deleted.
 
@@ -78,11 +114,11 @@ corr_mat <- cor(filtered_data,
 corr_mat
 
 # You can also calculate a single correlation between two variables
-cor(filtered_data$bdi_item_1, filtered_data$bdi_item_2, use = 'pairwise.complete.obs')
+cor(bfi_filtered$extraversion, bfi_filtered$neuroticism, use = 'pairwise.complete.obs')
 
 # To get the p-value, use cor.test()
 ?cor.test
-cor.test(filtered_data$bdi_item_1, filtered_data$bdi_item_2, use = 'pairwise.complete.obs')
+cor.test(bfi_filtered$extraversion, bfi_filtered$neuroticism, use = 'pairwise.complete.obs')
 
 # Visualize the matrix with 'corrplot':
 corrplot(corr_mat) # The default corrplot function provides the correlation strength through shape size
@@ -102,7 +138,7 @@ ggcorrplot(corr_mat, # Change other settings
  lab_size = 2)
 
 # For correlations as scatterplots, distributions, and printed corrleation coefficients
-ggpairs(filtered_data, columns = 1:4, title = "Correlogram with ggpairs()") 
+ggpairs(bfi_filtered, columns = 1:4, title = "Correlogram with ggpairs()") 
 # For more settings: https://ggobi.github.io/ggally/articles/ggpairs.html
 
 # To save the visualization(s), 
@@ -135,24 +171,102 @@ dev.off()
 # Linear regression
 ```{r lm}
 # The base linear regression function, lm(), is included in base R. 
-# The form is lm(outcome_variable ~ predictor_variable_1 + predictor_variable_1, data = your_dataset). 
+# The form is lm(outcome_variable ~ predictor_variable_1 + predictor_variable_2, data = your_dataset). 
 ?lm
-# For example, 
-regr_model_one <- lm(bdi_item_9 ~ bdi_item_1, data = filtered_data) # fit regression model
+
+# For example, lets look at neuroticism and openness as predictors, and extraversion as the outcome:
+regr_model_two_vars <- lm(extraversion ~ neuroticism + openness, data = bfi_filtered) # fit regression model
 
 # Obtain a summary of your model
-summary(regr_model_one)
+summary(regr_model_two_vars)
 
-# Check the linear model assumptions. The 'check_model' function from the performance package is excellent for this:  
-check_model(regr_model_one)
+# Check the linear model assumptions. The 'check_model' function from the performance package has an excellent visualization for this:  
+check_model(regr_model_two_vars)
+
+# Statistical tests (normality, homoscedasticity, autocorrelation) with 'nice_assumptions' from the 'rempsych' package:
+nice_assumptions(regr_model_two_vars)
+# p < .05 means that assumptions are violated
+# The 'Diagnostic' value is how many assumptions are violated. Here, one assumption was violated.
 
 # Let's make an APA table:
 # For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.reg.table
-Regression_table <- apa.reg.table(regr_model_one, 
+Regression_table <- apa.reg.table(regr_model_two_vars, 
                                   filename = "03_Output/Regression_table.doc", 
                                   table.number = 2)
 
 # Look at it
 Regression_table
+
+# If you want a stepwise regression table (as in, model one has the first predictor variable, and model two has both predictor variables): # You already have the model with both predictor variables - the 'regr_model_two_vars' object. 
+# Now, create a lm with just the first predictor:
+regr_model_one_var <- lm(extraversion ~ neuroticism, data = bfi_filtered)
+# Now, regr_model_one_var has neuroticm --> extraversion, 
+# And regr_model_two_vars has neuroticism + openness --> extraversion. 
+
+# Obtain a summary of your model
+summary(regr_model_one_var)
+
+# Check the linear model assumptions
+check_model(regr_model_one_var)
+
+# Now, to make a stepwise regression APA Table, you use the same argument as before - however, include the first model ('block 1') followed by the second model ('block 2').
+# These instructions are included in https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.reg.table!
+
+Regression_stepwise_table <- apa.reg.table(regr_model_one_var,  # one predictor variable
+                                           regr_model_two_vars, # both predictor variables
+                                           filename = "03_Output/Stepwise_regression_table.doc", 
+                                           table.number = 3)
+
+# How to write up these results? 
+# The report() function is so handy for this! 
+# https://www.rdocumentation.org/packages/report/versions/0.6.0
+
+# Generate a verbal summary of the models:
+report(regr_model_one_var)
+report(regr_model_two_vars)
+
+# You can even use this to report participant demographics! This is done with the 'report_participants' function. 
+# Let's select two demographic variables.  
+# We can isolate the variable that we want within the argument with base R. 
+# Remember, this follows the format [rows, columns].
+
+report_participants(bfi[, c("age", "education")], spell_n = TRUE)
+# In the output, you can see that mean education was treated as a numeric variable.
+# We want it to be a factor, because each number represents a level. 
+# Let's modify that with 'as.factor()'
+
+bfi$education <- as.factor(bfi$education)
+report_participants(bfi[, c("age", "education")], spell_n = TRUE)
+```
+
+# ANOVA
+```{r anova}
+# Question: Is there a difference in extraversion scores between education levels?
+# the aov() function from base R does an ANOVA. This follows the same format as the lm()!
+
+anova_education <- aov(extraversion ~ education, data = bfi) # fit anova
+
+# Obtain a summary of your model
+summary(anova_education)
+
+# After ANOVA, you will often report pairwise comparisons. The TukeyHSD() function will do this:
+TukeyHSD(anova_education) 
+
+# ANOVA and linear models are actually same analysis! Let's fit an lm() and compare the output to the aov()
+lm_education <- lm(extraversion ~ education, data = bfi) 
+summary(lm_education)
+# They have the same F statistics and p value!
+
+# Using APA tables, you can make an ANOVA table! This is done by using the lm as input - not the aov:
+anova_table <- apa.aov.table(
+  lm_education,
+  filename = "03_Output/ANOVA_table.doc",
+  table.number = 4,
+  conf.level = 0.95,
+  type = 3
+)
+
+# Let's report this! 
+report(anova_education)
 ```
 

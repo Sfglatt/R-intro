@@ -38,13 +38,16 @@ if (!require("readxl")) {install.packages("readxl"); require("readxl")}
 if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
 if (!require("haven")) {install.packages("haven"); require("haven")} 
 if (!require("Hmisc")) {install.packages("Hmisc"); require("Hmisc")} 
-if (!require("psych")) {install.packages("psych"); require("psych")} 
 if (!require("summarytools")) {install.packages("summarytools"); require("summarytools")}
 if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")}
+if (!require("psych")) {install.packages("psych"); require("psych")} 
 if (!require("apaTables")) {install.packages("apaTables"); require("apaTables")} 
+if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
+if (!require("ggcorrplot")) {install.packages("ggcorrplot"); require("ggcorrplot")} 
+if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
+if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
 if (!require("performance")) {install.packages("performance"); require("performance")} 
 if (!require("see")) {install.packages("see"); require("see")} 
-if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
-if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
+if (!require("report")) {install.packages("report"); require("report")} 
 ```
 
