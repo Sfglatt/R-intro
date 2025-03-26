@@ -1,0 +1,112 @@
+---
+title: "05_simulate_data"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# This script generates a multilevel dataset that could be used in "05_mlm.Rmd"
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
+if (!require("MASS")) {install.packages("MASS"); require("MASS")} 
+```
+
+# Simulate baseline data for 100 participants 
+```{r baseline simulation}
+set.seed(123456) 
+
+baseline <- data.frame(
+  id = 1:100,
+  
+  Sex = sample(c("Male", "Female"), 100, replace = TRUE, prob = c(0.76, 0.24)),
+  
+  Race_ethnicity = sample(
+    c("White", "Hispanic", "Asian or Pacific Islander", "Multiracial", "Not Listed"),
+    100, replace = TRUE, prob = c(0.83, 0.095, 0.057, 0.022, 0.007)
+  ),
+  
+  Age = round(rnorm(100, mean = 32, sd = 5), 1),
+  
+  # Baseline clinical measures
+  DX = sample(0:1, 100, replace = TRUE),
+  SITBI = round(rnorm(100, mean = 3, sd = 0.8), 2),
+  INQ15 = round(rnorm(100, mean = 50, sd = 10)),
+  BHS = round(rnorm(100, mean = 25, sd = 7)),
+  PHQ9 = round(rnorm(100, mean = 80, sd = 20))
+)
+
+head(baseline)
+```
+
+# Simulate daily diary data
+```{r daily diary simulation}
+# I'm simulating data from a correlation matrix so that toy models will work 
+set.seed(123456)
+
+# 100 participants for 30 days, 1x daily
+N <- 100
+days <- 30
+dailyx <- 1
+ema_timepoints <- N * days * dailyx
+
+variables <- c(
+  "si",
+  "depression",
+  "burden", 
+  "restrict", 
+  "stress")
+
+
+cor_matrix <- matrix(0.5, nrow = length(variables), ncol = length(variables))  
+diag(cor_matrix) <- 1  
+
+# Arbitrarily making stronger/weaker relationships
+cor_matrix[1, 2] <- 0.6    
+cor_matrix[3, 4] <- 0.4    
+cor_matrix[4, 5] <- 0.5    
+
+simulated_data <- MASS::mvrnorm(n = ema_timepoints, mu = rep(0, length(variables)), Sigma = cor_matrix)
+
+daily_data <- data.frame(simulated_data)
+
+# Making all variables scaled to 0-100 because it's easier to conceptualize
+daily_data_scaled <- apply(daily_data, 2, function(x) {
+  scaled_x <- (x - min(x)) / (max(x) - min(x)) * 100
+  return(scaled_x)
+  })
+
+daily_data_scaled <- data.frame(daily_data_scaled)
+
+daily_data_scaled$participant_id <- rep(1:N, each = days * dailyx)
+daily_data_scaled$day <- rep(1:days, each = dailyx, times = N)
+daily_data_scaled$beep_number <- rep(1:dailyx, times = N * days)  
+daily_data_scaled$timepoint <- rep(1:(days * dailyx), times = N)
+
+colnames(daily_data_scaled) <- c(variables, "id", "day", "beep_number", "timepoint")
+
+# Merge in baseline data
+daily_data_scaled <- merge(daily_data_scaled, baseline[, c("id", "Sex")], 
+                           by = "id", 
+                           all.x = TRUE)
+```
+
+# Introduce variability for multilevel models
+```{r variabilitu}
+# Add random intercepts for each participant to introduce between-person variance
+set.seed(123456)
+random_intercepts <- rnorm(N, mean = 50, sd = 10)  
+
+daily_data_scaled$si <- daily_data_scaled$si + rep(random_intercepts, each = days)
+daily_data_scaled$depression <- daily_data_scaled$depression + rep(random_intercepts, each = days)
+daily_data_scaled$burden <- daily_data_scaled$burden + rep(random_intercepts, each = days)
+daily_data_scaled$restrict <- daily_data_scaled$restrict + rep(random_intercepts, each = days)
+daily_data_scaled$stress <- daily_data_scaled$stress + rep(random_intercepts, each = days)
+```
+
+```{r save data}
+write.csv(daily_data_scaled, "05_data.csv")
+```

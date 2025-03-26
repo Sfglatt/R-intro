@@ -1,0 +1,316 @@
+---
+title: "05_mlm"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# An example multilevel modeling script
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+# There are two main packages that you can use to construct a multilevel model: 'lme4' and 'nlme'
+# Both packages are useful. e.g., lme4 is more user-friendly, and nlme can accomodate some complex functions more easily.
+
+if (!require("lme4")) {install.packages("lme4"); require("lme4")} 
+# https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf
+
+if (!require("lmerTest")) {install.packages("lmerTest"); require("lmerTest")} 
+# This package augments some functions in 'lme4' For example, lme4 won't directly yield p-values, but if you load this package, then lme4 will
+# https://cran.r-project.org/web/packages/lmerTest/lmerTest.pdf
+
+if (!require("sjPlot")) {install.packages("sjPlot"); require("sjPlot")} 
+# This package can create APA-formatted results tables from lme4 results - a major timesaver (& benefit of using lme4)!
+# https://cran.r-project.org/web/packages/sjPlot/vignettes/tab_mixed.html
+
+if (!require("report")) {install.packages("report"); require("report")} 
+# Report() will give you a write-up summary of lme4 objects!
+# https://www.rdocumentation.org/packages/report/versions/0.6.0
+
+if (!require("nlme")) {install.packages("nlme"); require("nlme")} 
+# https://cran.r-project.org/web/packages/nlme/nlme.pdf
+
+if (!require("performance")) {install.packages("performance"); require("performance")} 
+if (!require("ICS")) {install.packages("ICS"); require("ICS")}
+if (!require("ICSOutlier")) {install.packages("ICSOutlier"); require("ICSOutlier")}
+if (!require("insight")) {install.packages("insight"); require("insight")}
+# Check the multilevel model for outliers
+# https://easystats.github.io/performance/articles/check_outliers
+
+if (!require("psychometric")) {install.packages("psychometric"); require("psychometric")} 
+# This package has a function to calculate the Intraclass Correlation Coefficient (ICC)
+# https://www.rdocumentation.org/packages/psychometric/versions/2.4/topics/ICC.lme
+
+if (!require("DataCombine")) {install.packages("DataCombine"); require("DataCombine")} 
+# Create an outcome variable for prospective models (i.e., a lead)
+# https://cran.r-project.org/web/packages/DataCombine/DataCombine.pdf
+
+if (!require("ggplot2")) {install.packages("ggplot2"); require("ggplot2")} 
+# For all things related to data visualization
+
+if (!require("EMAtools")) {install.packages("EMAtools"); require("EMAtools")} 
+# When you try to install this package, you will recieve an error 'Warning: there is no package called ‘EMAtools’
+# This package used to house helpful functions for multilevel models. Unfortunately, it was removed from CRAN. 
+# However, the functions that EMAtools uses are available on GitHub. Therefore, we can copy the code for the functions and then use them!
+# The GitHub repository is here: https://github.com/cran/EMAtools/tree/master
+```
+
+```{r functions}
+# The functions that we'll use from EMAtools (retrieved from GitHub) are: 
+
+# pmean()
+# This function calculates person-level means. This will create a level-2 variable that can be used in tandem with person-centered means. This is useful if you are interested in both the within-person and between-person effects.
+pmean <- function(ID, var) {
+  centered <- ave(var, ID, FUN = function(x) mean(x, na.rm = TRUE))
+  return(centered)
+}
+
+# pcenter()
+# This function centers on person-means.(How much each individual score differs from the average score for **that individual**) 
+
+pcenter <- function(ID, var) {
+  centered<- var-ave(var, ID, FUN = function(x) mean(x, na.rm = TRUE))
+  return(centered)
+}
+
+# gcenter()
+# This function centers on grand-means. (How much each individual score differs from the average score for **the entire sample**)
+gcenter <- function(var) {
+  centered <- var-(mean(var, na.rm = TRUE))
+  return(centered)
+}
+
+# lme.d.score()
+# This function calculates d scores from an lme4 or nlme object. This is just a nice way to get effect sizes!
+lme.dscore <- function(mod,data,type) {
+  if (type == "lme4") {
+    mod1 <- lmerTest::lmer(mod, data = data)
+    eff <- cbind(summary(mod1)$coefficients[, 4], summary(mod1)$coefficients[, 3])
+  }
+
+  if (type == "nlme") {
+    eff = cbind(summary(mod)$tTable[, 4],summary(mod)$fixDF$terms)
+  }
+
+  colnames(eff) <- c("t", "df")
+  eff <- as.data.frame(eff)
+  eff$d <- (2*eff$t)/sqrt(eff$df)
+  eff <- eff[-1, ]
+  return(eff)
+}
+```
+
+```{r data and directory}
+# This script will use a simulated data that can be created in '05_simulate_data.Rmd'
+dataset <- read.csv("05_data.csv")
+
+# Look at the dataset 
+View(dataset)
+
+# Remove the first column (remember, [rows, columns])
+dataset <- dataset[, -1]
+
+# Create a folder to save the output
+dir.create("05_Output")
+```
+
+# Create multilevel model predictor state and trait variables
+```{r mlm variables}
+# Let's create a between-person and within-person variable for the predictor variable (depression)
+
+# Participant-mean scores (a trait variable). This line creates a new 'depression_pmeans' variable
+dataset$depression_pmeans <- pmean(dataset$id, dataset$depression)
+
+# person-centered mean scores (a state variable). This line creates a new 'depression_pcent' variable
+dataset$depression_pcent <- pcenter(dataset$id, dataset$depression)
+
+# Including the between- and within-person components in a multilevel model allows you analyze if: 
+# 1) an individual’s average level of depression (between-person) predicts an outcome, and 
+# 2) if deviations from individuals' own average level of depression at a given timepoint (within-person) predicts an outcome. 
+
+# In multilevel models, each variable is a 'level'
+# Level 1 variables are day-to-day variables. Person-mean centered scores are level 1. A 'time' variable would be level 1. 
+# Level 2 variables are variables that have the same value at each time per person. For example, gender. Participant-mean scores are level 2.
+# Level 3 variables are clustered/nested variables. For example, observations within days within people; observations within participants within groups (e.g., control/treatment).
+```
+
+# Unconditional model
+```{r unconditional model}
+# The first model fit in almost any multilevel context is the unconditional means model ('random intercepts model')
+# There are no predictor variables - just the outcome variable (here, suicidal ideation)
+
+# Let's look at what  lmer() takes as input
+?lmer
+
+# Fit the unconditional model
+unconditional_model <- lmer(si ~ 1 + (1 | id), 
+                           REML = TRUE, # This is the default, so you do not need to include this line
+                           data = dataset)
+
+# The primary statistic that you'll want from the unconditional model is the Intraclass Correlation Coefficient (ICC). 
+# The ICC quantifies variance due to between-person and variance that is within-person. If the ICC = .60, then 60% of the variance in the dependent variable is due to between-group differences, and the remaining 40% is due to within-group differences.
+
+# You can derive the ICC from the sjPlot table, with tab_model()
+tab_model(unconditional_model)
+
+# There is also an 'ICC1.lme()' function from the psychometric package that can calculate ICC
+?ICC1.lme()
+ICC1.lme(si, id, data = dataset)
+```
+
+# Add predictor variables
+```{r two-level model}
+# Now let's add a predictor variable of depression
+# We'll include the between-person component of depression (created with pmean()) and the within-person component (created with pcenter())
+# The participant-mean score is 'Level 2' and individual deviations from participant-mean scores is 'Level 1'. 
+# You do not need to specify which level a variable is! lme4 automatically recognizes which level a variable is. 
+
+# For an example publication that constructs this exact type of multilevel model, see 
+# Blendermann, M., Breaux, R., Fried, E. I., Naragon-Gainey, K., Starr, L. R., Stewart, J., & Teachman, B. A. (2025). Anxiety, worry, and difficulty concentrating: A longitudinal examination of concurrent and prospective symptom relationships. Behavior Therapy.
+
+predictor_model <- lmer(
+  si ~  depression_pmeans
+  + depression_pcent 
+  + day # Add a time variable into the model. This is a 'fixed effect of time' and is standard to include.
+  + (1 | id),
+  data = dataset)
+
+summary(predictor_model)
+
+# Create an APA-style table with tab_model() from sjPlot
+tab_model(predictor_model,
+          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+
+# Convert the estimates to effect sizes (in Cohen's d)
+lme.dscore(predictor_model, data = dataset, type = "lme4")
+
+# Just like in the '03...Rmd' file, you can use report() to get a write-up of the results from 'lme4' objects!
+report(predictor_model)
+```
+
+```{r vary across participants}
+# The model with '(1 | id)' has a random intercept and fixed slope -
+# so each participant has their own starting place, but the slope is the same for each participant. 
+# If you want a random slope for one of the variables, replace the 1 with the variable.
+# To let the momentary (person-centered) depression vary across persons, this would be '(depression_pcent | id)'
+
+predictor_model_two <- lmer(
+  si ~  depression_pmeans
+  + depression_pcent 
+  + day 
+  + (depression_pcent | id), # Now, the model has a random intercept as well as a random slope for momentary depression
+  data = dataset)
+
+summary(predictor_model_two)
+
+# You can include more then one model in the APA-formatted table if they both have the same outcome variable! 
+tab_model(predictor_model,
+          predictor_model_two,
+          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+
+# Which model is better to use (random intercept and fixed slope, or random intercept and random slope)?
+# You can use an ANOVA to test for a significant difference between the models. 
+# If there is no significant difference, then use the model with random intercept and fixed slope.
+anova(predictor_model, predictor_model_two)
+```
+
+# The above models used an outcome variable (si) that was at the same timepoint as the predictor variables. 
+# If you want to predict the outcome at the next timepoint:
+```{r prospective variable}
+# You can lead a variable using the slide() function from the 'DataCombine' package 
+?slide
+# https://www.rdocumentation.org/packages/DataCombine/versions/0.2.21/topics/slide
+
+dataset <- slide(data = dataset, 
+                 Var = "si",         # The outcome variable
+                 TimeVar = "day",    # Time variable
+                 GroupVar = "id",    # Grouping variable
+                 NewVar = "si_lead", # The name of the new variable
+                 slideBy = 1)        # Lead the variable by one time unit
+
+# Now, use this variable as the outcome variable, and then you wil be predicting next-day suicidal ideation. 
+# If you want to predict *change* in suicidal ideation, then include the same-day suicidal ideation variable as a predictor/covariate.
+prospective_model <- lmer(
+  si_lead ~  depression_pmeans
+  + depression_pcent 
+# + si
+  + day 
+  + (1 | id),
+  data = dataset)
+
+summary(prospective_model)
+
+# APA style table!
+tab_model(prospective_model,
+          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+
+# Convert the estimates to effect sizes (in Cohen's d)
+lme.dscore(prospective_model, data = dataset, type = "lme4")
+```
+
+# Check for outliers
+```{r two-level model outliers}
+# How can you check for outliers? 
+outlier_check <- performance::check_outliers(predictor_model, method = "all") 
+# There are several different methods for outlier removal that this function uses. 
+# You can use a specific one, or you can you use 'all' - which classifies a point as an outlier if it is identified as such by at least 1/2 of the methods. 
+# For more information: https://easystats.github.io/performance/articles/check_outliers
+outlier_check
+
+# If there is an outlier, extract the row in the data that is the outlier
+outlier_indices <- which(outlier_check) 
+insight::get_data(predictor_model)[outlier_indices, ] # Row 1178, id 73, day 18
+
+# Remove the outlier from the dataset
+dataset_filtered <- dataset[!(dataset$id == 73 & dataset$day == 18), ] 
+# (Remember that to filter a data frame you follow [rows, columns]. Here, you use the & operator to specify the specific row identified above by 'id' and 'day'. Because ! inverts the condition, this now keeps every row *besides* the one you specified.)
+
+# Now, just rerun the model!
+predictor_model_new <- lmer(
+  si ~  depression_pmeans
+  + depression_pcent 
+  + day 
+  + (1 | id),
+  data = dataset_filtered) # Use the filtered data
+
+summary(predictor_model_new)
+
+# Re-check for outliers (sometimes when you remove one, others are identified. If more are identified, repeat the process...)
+outlier_check_2 <- performance::check_outliers(predictor_model_new, method = "all")
+```
+
+# Plots
+```{r plots}
+# plot suicidal ideation by trait-like depression (person-mean) (between person)
+between_person_plot <- dataset %>% 
+  ggplot(aes(depression_pmeans, si)) +
+  geom_smooth(method = 'lm', se = TRUE) + 
+  labs(x = "Trait depression", y = "suicidal ideation") +
+  theme_classic() 
+
+between_person_plot
+
+# Plot suicidal ideation by momentary depression (person centered) (within-person)
+within_person_plot <- dataset %>% 
+  ggplot(aes(x = depression_pcent, y = si, group = id, color = id))+
+  geom_smooth(method = "lm", se = FALSE, size = .45) + 
+  labs(x = "Momentary depression", y = "suicidal ideation") +
+  theme_classic() +
+  theme(legend.position = "none") 
+
+within_person_plot
+
+# The same as 'within_person_plot', just make each person their own plot.
+within_person_plots  <- dataset %>% 
+  ggplot(aes(x = depression_pcent, y = si, group = id, color = id))+
+  geom_smooth(method = "lm", se = FALSE, size = .45) + 
+  labs(x = "Momentary depression", y = "suicidal ideation") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  facet_wrap(~id)
+
+within_person_plots
+```
+
