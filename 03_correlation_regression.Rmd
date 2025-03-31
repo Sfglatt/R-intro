@@ -15,6 +15,14 @@ if (!require("apaTables")) {install.packages("apaTables"); require("apaTables")}
 # This packages creates APA-style publication-ready tables for basic analyses (e.g., correlations, regression, ANOVA)
 # https://dstanley4.github.io/apaTables/articles/apaTables.html
 
+if (!require("scipub")) {install.packages("scipub"); require("scipub")} 
+# APA-format results for linear regressions, correlation, and t-test objects from the stats package
+# https://dpagliaccio.github.io/scipub/reference/index.html
+
+if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
+# similar to apaTables, can wrap some analytic objects to create tables
+# https://github.com/RemPsyc/rempsyc
+ 
 if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
 if (!require("ggcorrplot")) {install.packages("ggcorrplot"); require("ggcorrplot")} 
 if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
@@ -23,12 +31,20 @@ if (!require("GGally")) {install.packages("GGally"); require("GGally")}
 # For ggcorrplot: https://rpubs.com/Alema/1000474
 # For GGally: https://ggobi.github.io/ggally/articles/ggpairs.html
 
+if (!require("stats")) {install.packages("stats"); require("stats")} 
+# For t-tests, ANOVA, linear models...
+
 if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
 # Select data
 
 if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
 # Linear regression model assumption tests
 # https://cran.r-project.org/web/packages/rempsyc/vignettes/assumptions.html
+
+if (!require("interactions")) {install.packages("interactions"); require("interactions")} 
+if (!require("emmeans")) {install.packages("emmeans"); require("emmeans")} 
+# For interaction stats and analysis
+# https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html
 
 if (!require("performance")) {install.packages("performance"); require("performance")} 
 if (!require("see")) {install.packages("see"); require("see")} 
@@ -38,8 +54,8 @@ if (!require("psych")) {install.packages("psych"); require("psych")}
 # For data
 
 if (!require("report")) {install.packages("report"); require("report")} 
-# To interpret basic analysis objects!
-# # https://www.rdocumentation.org/packages/report/versions/0.6.0
+# To interpret select analysis objects!
+# https://www.rdocumentation.org/packages/report/versions/0.6.0
 ```
 
 # Data and directory
@@ -83,21 +99,21 @@ dir.create("03_Output")
 ```{r matrix}
 # Use apaTables!
 
-# Let's make the correlationmatrix + save this table in APA format.
+# Let's make the correlation matrix + save this table in APA format.
 # For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.cor.table
 
 # First, we should filter the dataset to just include the total scores. 
 colnames(bfi)
 bfi_filtered <- bfi %>% 
-  dplyr::select(conscientious, extraversion, neuroticism, openness)
+  dplyr::select(conscientious, extraversion, neuroticism, openness, agree)
 
+?apa.cor.table
 Matrix <- apa.cor.table(bfi_filtered, 
                         filename = "03_Output/Correlation_matrix.doc",
                         table.number = 1, 
                         show.conf.interval = TRUE, 
                         show.sig.stars = TRUE, 
                         landscape = TRUE)
-
 # Look at it
 Matrix
 
@@ -106,6 +122,7 @@ Matrix
 
 # corrplot needs a basic correlation matrix as input. 
 # The cor() function can provide the input.
+?cor
 corr_mat <- cor(bfi_filtered,
                 method = 'pearson', # The default method is pearson, so if you don't include this line you will get identical results.
                 use = 'pairwise.complete.obs') # Use complete observations = missing data will be deleted.
@@ -121,6 +138,7 @@ cor(bfi_filtered$extraversion, bfi_filtered$neuroticism, use = 'pairwise.complet
 cor.test(bfi_filtered$extraversion, bfi_filtered$neuroticism, use = 'pairwise.complete.obs')
 
 # Visualize the matrix with 'corrplot':
+?corrplot
 corrplot(corr_mat) # The default corrplot function provides the correlation strength through shape size
 corrplot(corr_mat, method = 'number') # you can get numbers in the matrix by setting method = 'number'
 corrplot.mixed(corr_mat) # ...and corrplot.mixed() will give you both the shapes and and numbers 
@@ -128,6 +146,7 @@ corrplot(corr_mat, type = "lower", tl.col = "black", tl.srt = 45) # Change some 
 
 # Alternatively, visualize the matrix with 'ggcorrplot'
 # The corr_mat object above can be the input:
+?ggcorrplot
 ggcorrplot(corr_mat) # The default method for the shape is a square
 ggcorrplot(corr_mat, method = "circle")
 ggcorrplot(corr_mat, # Change other settings
@@ -138,6 +157,7 @@ ggcorrplot(corr_mat, # Change other settings
  lab_size = 2)
 
 # For correlations as scatterplots, distributions, and printed corrleation coefficients
+?ggpairs
 ggpairs(bfi_filtered, columns = 1:4, title = "Correlogram with ggpairs()") 
 # For more settings: https://ggobi.github.io/ggally/articles/ggpairs.html
 
@@ -170,7 +190,7 @@ dev.off()
 
 # Linear regression
 ```{r lm}
-# The base linear regression function, lm(), is included in base R. 
+# The linear regression function, lm(), is from the stats package. 
 # The form is lm(outcome_variable ~ predictor_variable_1 + predictor_variable_2, data = your_dataset). 
 ?lm
 
@@ -190,6 +210,7 @@ nice_assumptions(regr_model_two_vars)
 
 # Let's make an APA table:
 # For documentation / how to use the function: https://www.rdocumentation.org/packages/apaTables/versions/2.0.8/topics/apa.reg.table
+?apa.reg.table
 Regression_table <- apa.reg.table(regr_model_two_vars, 
                                   filename = "03_Output/Regression_table.doc", 
                                   table.number = 2)
@@ -197,7 +218,8 @@ Regression_table <- apa.reg.table(regr_model_two_vars,
 # Look at it
 Regression_table
 
-# If you want a stepwise regression table (as in, model one has the first predictor variable, and model two has both predictor variables): # You already have the model with both predictor variables - the 'regr_model_two_vars' object. 
+# If you want a stepwise regression table (as in, model one has the first predictor variable, and model two has both predictor variables):
+# You already have the model with both predictor variables - the 'regr_model_two_vars' object. 
 # Now, create a lm with just the first predictor:
 regr_model_one_var <- lm(extraversion ~ neuroticism, data = bfi_filtered)
 # Now, regr_model_one_var has neuroticm --> extraversion, 
@@ -218,12 +240,18 @@ Regression_stepwise_table <- apa.reg.table(regr_model_one_var,  # one predictor 
                                            table.number = 3)
 
 # How to write up these results? 
-# The report() function is so handy for this! 
+# The report package & function is so handy for this! 
 # https://www.rdocumentation.org/packages/report/versions/0.6.0
-
+?report
 # Generate a verbal summary of the models:
 report(regr_model_one_var)
 report(regr_model_two_vars)
+
+# The report_table() functions nicely clean up raw output too:
+report_table(regr_model_two_vars)
+
+# A similar function is apastats() from the 'scipub' package. This function will format APA-style results without text.
+apastat(regr_model_two_vars)
 
 # You can even use this to report participant demographics! This is done with the 'report_participants' function. 
 # Let's select two demographic variables.  
@@ -239,12 +267,181 @@ bfi$education <- as.factor(bfi$education)
 report_participants(bfi[, c("age", "education")], spell_n = TRUE)
 ```
 
+```{r lm interaction}
+# To include an interaction in your lm, you can use a * or :. 
+# When you use an *, you do not need to include the predictor variables separately. When you use :, you do. For example, 
+# lm(Y ~ X + Z + X:Z)
+# lm(Y ~ X*Z)
+
+# Before fitting a linear model with an interaction, you should center the variables that are used in the interaction.
+# Use the base R scale() function:
+?scale
+
+bfi$extraversion_cent <- scale(bfi$extraversion, center = TRUE, scale = FALSE) # Create an 'extraversion_cent' variable
+bfi$agree_cent <- scale(bfi$agree, center = TRUE, scale = FALSE) # Create a 'agree_cent' variable
+
+# Now, fit the lm()
+interaction_one <- lm(openness ~ extraversion_cent*agree_cent, data = bfi) 
+interaction_two <- lm(openness ~ extraversion_cent:agree_cent, data = bfi) 
+
+summary(interaction_one) # Neuroticism, openness, and their interaction are included as predictor variables
+summary(interaction_two) # Only the interaction between neuroticism and openness is included as a predictor variable.
+
+# Check the normality, linearity, variance, and collinearity assumptions + outliers
+check_model(interaction_one)
+
+# There are a few ways to visualize an interaction. For example, interact_plot() from the interactions package
+interact_plot(interaction_one, 
+              pred = extraversion_cent, 
+              modx = agree_cent)
+
+# By default, interact_plot() plots one line to represent 1 SD above the mean, 1 line for 1 SD below the mean, and a line for the mean itself. 
+# To split the data into three equal-sized groups representing the upper, middle, and lower thirds of the distribution of the moderator, change the modx.values argument to terciles
+interact_plot(interaction_one,
+              pred = extraversion_cent,
+              modx = agree_cent,
+              modx.values = "terciles")
+
+# To plot data points, plot.points = TRUE. Here, it will be messy (big dataset!)
+interact_plot(interaction_one,
+              pred = extraversion_cent, 
+              modx = agree_cent,
+              plot.points = TRUE)
+
+# You can add a random “jitter” to move the data points slightly. This can help with overlap:
+interact_plot(interaction_one, 
+              pred = extraversion_cent, 
+              modx = agree_cent,
+              plot.points = TRUE,
+              jitter = 0.1)
+
+# It is good practice to plot confidence internals as precision estimates
+interact_plot(interaction_one, 
+              pred = extraversion_cent,
+              modx = agree_cent,
+              interval = TRUE,
+              int.width = 0.95)
+
+# An assumption in a basic linear regression is that your predictor and outcome variables follow a linear relationship. 
+# When you add a moderator, you are adding the assumption that the relationship is linear *regardless of the moderator*
+# interact_plot() includes a visualization of this assumption:
+# The black line is from the full data, and the red line will be a subset of the data by level of the moderator. Ideally, the red line should be straight like the black line.
+interact_plot(interaction_one,
+              pred = extraversion_cent,
+              modx = agree_cent,
+              interval = TRUE,
+              int.width = 0.95, 
+              linearity.check = TRUE)
+
+# For continuous x continuous interactions, you can visualize the Johnson-Neyman interval. 
+# This interval identifies the range of moderator values where the effect of the predictor variable on the outcome variable is statistically significant.
+johnson_neyman(interaction_one, 
+               pred = extraversion_cent,
+               modx = agree_cent, 
+               alpha = .05)
+# Here, when agree is OUTSIDE the interval [1.72, 3.31], the slope of extraversion is p < .05.
+
+# You can plot the Johnson-Neyman interval and interaction plot at the same time with probe_interaction()
+probe_interaction(interaction_one,
+                  pred = extraversion_cent,
+                  modx = agree_cent,
+                  cond.int = TRUE,
+                  interval = TRUE,
+                  jnplot = TRUE)
+
+# There is a lot more with interactions!!
+
+# You could use apaTables to make a table for this lm(). nice_table() from the rempsych package can also make an APA table, but it needs input from the rempsyc package. 
+# Use the nice_mod() function from rempsyc so that nice_table() can make an APA-table
+?nice_mod
+moderation_nice <- nice_mod(
+  data = bfi,
+  response = "openness",
+  predictor = "extraversion_cent",
+  moderator = "agree_cent"
+)
+
+# Look at the results
+moderation_nice
+
+# Make a formatted table
+nice_table(moderation_nice, highlight = TRUE)
+
+# You can add more then one outcome variable with c() for the response variable
+moderation_nice_two <- nice_mod(
+  data = bfi,
+  response = c("openness", "conscientious"), # conscientious and openness are outcome variables
+  predictor = "extraversion_cent",
+  moderator = "agree_cent"
+)
+
+# Look at the results
+moderation_nice_two
+
+# Make the table and make it into an object
+moderation_table <- nice_table(moderation_nice_two, highlight = TRUE)
+moderation_table
+
+# Save as a word document
+flextable::save_as_docx(moderation_table, path = "03_Output/Interaction_table.docx")
+```
+
+# t-test
+```{r t test}
+# Question: Is there a difference in extraversion scores by gender?
+# The stats package has a t.test() function
+?t.test
+
+t_test <- t.test(bfi$extraversion ~ bfi$gender)
+t_test
+
+# Clean up the output with report_table()
+report_table(t_test)
+
+# Report t:he results 
+apastat(t_test)
+report(t_test)
+
+# & make a table!
+# The package that can make APA tables for t-tests is rempsyc. To make the table, the stats object also needs to be created with the rempsyc package. 
+
+# nice_t_test() from the rempsyc package will run a t test
+?nice_t_test
+t_test_2 <- nice_t_test(
+  data = bfi,
+  response = "extraversion",
+  group = "gender"
+)
+
+# Use the ^ object to make a table
+t_table <- nice_table(t_test_2)
+
+# You can add multiple outcome variables in one call
+t_test_multiple <- nice_t_test(
+  data = bfi,
+  response = c("extraversion", "agree", "openness", "neuroticism"), # All the outcome variables
+  group = "gender"
+)
+
+# Look at the results
+t_test_multiple
+
+# Use the object to make a table
+t_table_multiple <- nice_table(t_test_multiple)
+
+# Look at it 
+t_table_multiple
+
+# Save the table to a word document
+flextable::save_as_docx(t_table_multiple, path = "03_Output/t_test_table.docx")
+```
+
 # ANOVA
 ```{r anova}
 # Question: Is there a difference in extraversion scores between education levels?
-# the aov() function from base R does an ANOVA. This follows the same format as the lm()!
+# the aov() function from the stats package does an ANOVA. This follows the same format as the lm()!
 
-anova_education <- aov(extraversion ~ education, data = bfi) # fit anova
+anova_education <- aov(extraversion ~ education, data = bfi) 
 
 # Obtain a summary of your model
 summary(anova_education)
@@ -258,6 +455,7 @@ summary(lm_education)
 # They have the same F statistics and p value!
 
 # Using APA tables, you can make an ANOVA table! This is done by using the lm as input - not the aov:
+?apa.aov.table
 anova_table <- apa.aov.table(
   lm_education,
   filename = "03_Output/ANOVA_table.doc",
@@ -314,4 +512,3 @@ openness_model <- models_list$openness
 # And then continue as usual!
 summary(openness_model)
 ```
-

@@ -180,6 +180,7 @@ predictor_model <- lmer(
 summary(predictor_model)
 
 # Create an APA-style table with tab_model() from sjPlot
+?tab_model
 tab_model(predictor_model,
           show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
 
@@ -205,7 +206,7 @@ predictor_model_two <- lmer(
 
 summary(predictor_model_two)
 
-# You can include more then one model in the APA-formatted table if they both have the same outcome variable! 
+# You can include more then one model in the APA-formatted table!
 tab_model(predictor_model,
           predictor_model_two,
           show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
@@ -230,7 +231,7 @@ dataset <- slide(data = dataset,
                  NewVar = "si_lead", # The name of the new variable
                  slideBy = 1)        # Lead the variable by one time unit
 
-# Now, use this variable as the outcome variable, and then you wil be predicting next-day suicidal ideation. 
+# Now, use this variable as the outcome variable, and then you will be predicting next-day suicidal ideation. 
 # If you want to predict *change* in suicidal ideation, then include the same-day suicidal ideation variable as a predictor/covariate.
 prospective_model <- lmer(
   si_lead ~  depression_pmeans
@@ -253,6 +254,8 @@ lme.dscore(prospective_model, data = dataset, type = "lme4")
 # Check for outliers
 ```{r two-level model outliers}
 # How can you check for outliers? 
+?check_outliers
+
 outlier_check <- performance::check_outliers(predictor_model, method = "all") 
 # There are several different methods for outlier removal that this function uses. 
 # You can use a specific one, or you can you use 'all' - which classifies a point as an outlier if it is identified as such by at least 1/2 of the methods. 

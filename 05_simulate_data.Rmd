@@ -95,7 +95,7 @@ daily_data_scaled <- merge(daily_data_scaled, baseline[, c("id", "Sex")],
 ```
 
 # Introduce variability for multilevel models
-```{r variabilitu}
+```{r variability}
 # Add random intercepts for each participant to introduce between-person variance
 set.seed(123456)
 random_intercepts <- rnorm(N, mean = 50, sd = 10)  

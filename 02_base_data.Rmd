@@ -73,12 +73,12 @@ round_half_up(1.25, digits = 1)
 2 >= 8   # greater than or equal to
 2 <= 8   # less than or equal to
 2 == 8   # equals (you need two equal signs!)
-2 != 8   # does not equal. # In general, the '!' operator inverts the condition. So here, '!=' means does not equal.
 2:8      # ':' means everything from 2 to 8.
+2 != 8   # does not equal. # In general, the '!' operator inverts the condition. So here, '!=' means does not equal.
 
 # For other examples of !,
 !TRUE  # TRUE becomes FALSE
-!FALSE  # FALSE becomes TRUE
+!FALSE # FALSE becomes TRUE
 
 # Logical comparison operators
 (2 < 8) & (3 > 1) # '&' is AND - are both statements correct?
@@ -228,6 +228,7 @@ mixed_vector * 10
 sum(mixed_vector) 
 
 # R will not be able to add up the numbers. However, you can instruct R to ignore the missing values with the expression 'na.rm = TRUE'
+?sum
 sum(mixed_vector, na.rm = TRUE)  # Now it correctly returns 7 (1 + 2 + 4)
 anyNA(mixed_vector)              # TRUE 
 
@@ -273,7 +274,7 @@ add_numbers(3, 5)
 # 2) return "Hello, [name], you seem [mood]!" as output, 
 
 greeting_function <- function(name, mood) {
-  print(paste("Hello,", name, ", you seem", mood, "!"))
+  print(paste("Hello,", name, ", you seem", mood, "!")) # (Remember that paste joins phrases together)
 }
 
 # Now, to use the function, you type 'greet(name, mood)' - because that is the function you just created! For example, 
@@ -308,6 +309,7 @@ depression_diagnosis_function(27) # putting in 27 for depression_score will yiel
 
 # Functions can give you more then one output. 
 # For example, if you want R to take a number as input and give you the (1) square of the number, and (2) cube of the number, you need to define a 'list' of things that it should give you as output. 
+
 # You make a list by creating objects, and then instructing R to return the objects in the list.
 square_cube_function <- function(x) {
   square <- x^2                          # Make an object for the square of the number
@@ -374,7 +376,7 @@ table(data$bdi_item_1)
 # If you want to see how many people chose each item by another characteristic, you can make a table with both variables. For example, if you want to see how many people chose each response in this item split by gender, you can run 
 table(data$bdi_item_1, data$demo_2)
 
-# Just like the vectors, you can change columns to numeric/character/factor with as.numeric(), as.factor(), and as.numeric()
+# Just like the vectors, you can change columns to numeric/character/factor with as.numeric(), as.factor(), and as.character()
 # For example, to change bdi_item_9 to numeric, 
 data$bdi_item_9 <- as.numeric(data$bdi_item_9)
 
@@ -384,13 +386,14 @@ data$bdi_item_9 <- as.numeric(data$bdi_item_9)
 
 # You can subset the data by indexing columns and rows with square brackets. 
 # This follows the form [rows, columns]
+
 subset_data_1 <- data[, c("bdi_item_1", "bdi_item_2")] # This specified columns (by name), but no rows. All rows will be included. 
 subset_data_2 <- data[, c(1, 2)]  # This specified columns (by number), but no rows. All rows will be included.
 subset_data_3 <- data[, 1:3] # The ':' symbol instructs R to select from the first value to the last value. 
 # Since 1:3 provide a range of numbers that R understands as a vector, this does not need c().
 
 subset_data_4 <- data[4:8, ] # Here, we subset rows 4 through 8 and did not specify columns. All columns will be selected. 
-subset_data_5 <- data[4:8, c("demo_1", "demo_2")] # This subsets rows 4-8 and columns 1-2.
+subset_data_5 <- data[4:8, c("demo_1", "demo_2")] # This subsets rows 4-8 and columns demo_1 and demo_2
 
 # You can also subset the data by setting conditions with the operators, like a scale score cutoff. 
 subset_data_6a <- data[data$bdi_item_3 > 1, ] # Now, this subset only includes rows who have a score > 1 on item 3
@@ -439,7 +442,7 @@ subset_data_8 <- dplyr::filter(data, bdi_item_3 > 1 & bdi_item_6 < 3)
 # This line sets an "either/or" condition. The symbol for "or" in dplyr is the "|" operator. This will filter your data to people who have > 1 on item 3 OR < 3 on item 6.
 subset_data_9 <- dplyr::filter(data, bdi_item_3 > 1 | bdi_item_6 < 3) 
 
-# You can remove people with missing data in column 1 from the dataset with "!is.na" 
+# You can remove people with missing data in an item from the dataset with "!is.na" 
 # Remember, ! inverts the condition. Here, it inverts 'is.na' so that all non-missing data is retained. 
 subset_data_10 <- dplyr::filter(data, !is.na(bdi_item_3))
 
@@ -611,7 +614,7 @@ filtered_data <- data %>%
     shortcut_sum_score_bdi = rowSums(across(starts_with("bdi_")), na.rm = TRUE),  # creating a sum score
     total_score_cutoff = ifelse(shortcut_sum_score_bdi > 27, 1, 0)                # making a cutoff variable from the sum score
   ) %>%
-  dplyr::filter(total_score_cutoff == 1) # chaining the "filter" function onto the same call.
+  dplyr::filter(total_score_cutoff == 1) # chaining the "filter" function onto the same call (here, filtering to people who have '1' on the cutoff variable)
 
 # To summarize data with dplyr, you use summarize() together with base R functions. For example, 
 data_summary <- data %>%
@@ -717,7 +720,6 @@ data_2 <- data.frame(
 
 # 'id' is the common column to merge by. 
 
-
 # With these two data frames, you can: 
 
 # Use left_join(). 
@@ -765,7 +767,7 @@ for (i in 1:5) {
 }
 # This loop instructs R that 'for every number from 1 to 5, print the square of the number.' This is much more efficient then calculating the square for each number separately!
 
-# If you want to save the results of the loop as an object, you need to 1) initalize an empty vector, and 2) add your results to the vector. With the same loop as before, 
+# If you want to save the results of the loop as an object, you need to 1) initialize an empty vector, and 2) add your results to the vector. With the same loop as before, 
 
 squares <- c() # Initialize an empty vector to store the results of the loop. Here, the empty vector is called "squares"
 

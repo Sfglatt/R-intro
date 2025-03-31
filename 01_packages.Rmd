@@ -25,7 +25,7 @@ if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")}
 # When you install a package, it is saved into your "library". To see which packages you already have in your library, run
 library()
 
-# To find out more information about a package, type a ? before it:
+# To find out more information about a package or function, type a ? before it:
 ?dplyr
 ```
 
@@ -33,21 +33,47 @@ library()
 ```{r list packages}
 if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
 if (!require("janitor")) {install.packages("janitor"); require("janitor")} 
-if (!require("MASS")) {install.packages("MASS"); require("MASS")} 
 if (!require("readxl")) {install.packages("readxl"); require("readxl")} 
-if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
 if (!require("haven")) {install.packages("haven"); require("haven")} 
 if (!require("Hmisc")) {install.packages("Hmisc"); require("Hmisc")} 
-if (!require("summarytools")) {install.packages("summarytools"); require("summarytools")}
-if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")}
 if (!require("psych")) {install.packages("psych"); require("psych")} 
+if (!require("summarytools")) {install.packages("summarytools"); require("summarytools")} 
+if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
 if (!require("apaTables")) {install.packages("apaTables"); require("apaTables")} 
+if (!require("scipub")) {install.packages("scipub"); require("scipub")} 
+if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
 if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
 if (!require("ggcorrplot")) {install.packages("ggcorrplot"); require("ggcorrplot")} 
 if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
+if (!require("stats")) {install.packages("stats"); require("stats")} 
 if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
+if (!require("interactions")) {install.packages("interactions"); require("interactions")} 
+if (!require("emmeans")) {install.packages("emmeans"); require("emmeans")} 
 if (!require("performance")) {install.packages("performance"); require("performance")} 
 if (!require("see")) {install.packages("see"); require("see")} 
+if (!require("psych")) {install.packages("psych"); require("psych")} 
 if (!require("report")) {install.packages("report"); require("report")} 
+if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")}
+if (!require("lme4")) {install.packages("lme4"); require("lme4")} 
+if (!require("lmerTest")) {install.packages("lmerTest"); require("lmerTest")} 
+if (!require("sjPlot")) {install.packages("sjPlot"); require("sjPlot")} 
+if (!require("nlme")) {install.packages("nlme"); require("nlme")} 
+if (!require("performance")) {install.packages("performance"); require("performance")} 
+if (!require("ICS")) {install.packages("ICS"); require("ICS")}
+if (!require("ICSOutlier")) {install.packages("ICSOutlier"); require("ICSOutlier")}
+if (!require("insight")) {install.packages("insight"); require("insight")}
+if (!require("psychometric")) {install.packages("psychometric"); require("psychometric")} 
+if (!require("DataCombine")) {install.packages("DataCombine"); require("DataCombine")} 
+if (!require("ggplot2")) {install.packages("ggplot2"); require("ggplot2")} 
+if (!require("EMAtools")) {install.packages("EMAtools"); require("EMAtools")} 
+```
+
+```{r report}
+# To see which packages are in use, 
+sessionInfo()
+
+# To report the packages that you used in a script, use the report() function from the report package.
+report(sessionInfo())
+# This makes it easy for journals that require packages + citations!
 ```
 
