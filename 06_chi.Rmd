@@ -1,0 +1,234 @@
+---
+title: "06_chi"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Packages}
+if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")}
+if (!require("explore")) {install.packages("explore"); require("explore")}
+if (!require("mosaicCore")) {install.packages("mosaicCore"); require("mosaicCore")}
+if (!require("sjPlot")) {install.packages("sjPlot"); require("sjPlot")}
+if (!require("stats")) {install.packages("stats"); require("stats")}
+if (!require("report")) {install.packages("report"); require("report")}
+if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")}
+if (!require("ggstatsplot")) {install.packages("ggstatsplot"); require("ggstatsplot")}
+if (!require("graphics")) {install.packages("graphics"); require("graphics")}
+if (!require("gplots")) {install.packages("gplots"); require("gplots")}
+if (!require("ggplot")) {install.packages("ggplot"); require("ggplot")}
+```
+
+```{r Data}
+# This script uses 'titanic' dataset built in to RStudio
+# To import the data, 
+titanic_data <- explore::use_data_titanic(count = FALSE)
+
+# Look at the dataset
+View(titanic_data)
+# There are four variables: Class, sex, age, and survived
+# For the chi-square, let's look at proportions of survivors ('Survived' column) in each class ('Class' column)
+
+# We need to recode the variables: 
+
+# Make a new recoded variable called "Class_rec"
+titanic_data$Class_rec <- dplyr::recode(titanic_data$Class, 
+                                        "1st" = "1", 
+                                        "2nd" = "2",
+                                        "3rd" = "3", 
+                                        "Crew" = "4")
+
+# Make a new recoded variable called "Survived_rec"
+titanic_data$Survived_rec <- dplyr::recode(titanic_data$Survived, 
+                                           "No" = "0", 
+                                           "Yes" = "1")
+
+# Change the two new variables to be numeric
+titanic_data$Class_rec <- as.numeric(titanic_data$Class_rec)
+titanic_data$Survived_rec <- as.numeric(titanic_data$Survived_rec)
+
+# Create a folder to save the output
+dir.create("06_Output")
+```
+
+```{r chi square}
+# First, just look at a small table 
+table <- table(titanic_data$Survived, titanic_data$Class)
+table
+
+# For a basic chi-square test, use the chisq.test() function from the 'stats' package
+chi_square_result <- stats::chisq.test(titanic_data$Class_rec, 
+                                       titanic_data$Survived_rec, 
+                                       correct = FALSE) # To apply a continuity correction, = TRUE
+
+# Look at the results
+chi_square_result
+
+# You can also access specific statistics from the 'chi_square_result' object.
+# When you view the results object, you'll see a list of different things you can access. 
+View(chi_square_result) 
+
+# Access some of the parameters from the 'chi_square_result' list
+chi_square_result$observed  # observed values
+chi_square_result$expected  # expected values
+chi_square_result$residuals # Pearson residuals
+
+# To clean up the basic results, you can use report_table() from the 'report' package
+report::report_table(chi_square_result)
+
+# And to get a brief APA-style write-up, use the report() function!
+report::report(chi_square_result)
+# This will tell you that "The Pearson's Chi-squared test of independence between titanic_data$Class_rec and titanic_data$Survived_rec suggests that the effect is statistically significant, and medium (chi2 = 190.40, p < .001; Adjusted Cramer's v = 0.29, 95% CI [0.25, 1.00])"
+
+# For a cross table and associated statistics, you can use CrossTable() from the 'descr' package 
+?CrossTable
+
+descr::CrossTable(titanic_data$Survived_rec, titanic_data$Class_rec,
+                  fisher = FALSE, chisq = TRUE, 
+                  expected = TRUE, prop.c = TRUE, prop.t = TRUE, prop.chisq = TRUE, 
+                  sresid = TRUE, 
+                  format = 'SPSS')
+
+# For a neat color-coded cross table, you can use the tab_xtab() function from the 'sjPlot' package
+?tab_xtab
+
+sjPlot::tab_xtab(var.row = titanic_data$Survived_rec,
+                 var.col = titanic_data$Class_rec, 
+                 title = "Contingency Table", 
+                 show.row.prc = TRUE, 
+                 show.col.prc = TRUE,
+                 show.summary = TRUE,
+                 statistics =  "pearson", # This can also be "phi", "spearman", "kendall", or "fisher
+                 show.exp = TRUE, 
+                 show.legend = TRUE) 
+
+# To save the above html crosstable directly into Microsoft Word, use the same code, but specify a filename in the last argument: 
+sjPlot::tab_xtab(var.row = titanic_data$Survived_rec,
+                 var.col = titanic_data$Class_rec, 
+                 title = "Contingency Table", 
+                 show.row.prc = TRUE, 
+                 show.col.prc = TRUE,
+                 show.summary = TRUE,
+                 statistics =  "pearson", 
+                 show.exp = TRUE, 
+                 show.legend = TRUE, 
+                 file = "06_Output/Contingency_table.doc") # Save the figure directly to Microsoft Word!
+
+# For another type of crosstable visualization, you can use the balloonplot() function from the 'gplots' package
+?gplots
+# This function needs the basic table as input (created on line 59), called 'table'
+gplots::balloonplot(t(table),
+                    main = "", xlab ="", ylab = "", 
+                    text.size = .75,
+                    label.size = 1, 
+                    label.color = 'blue',
+                    label = TRUE, 
+                    show.margins = TRUE)
+
+# For a simple side-by-side bar plot to show the comparison, you can use plot_xtab() from the sjPlot package
+?plot_xtab
+
+proportions_vis <- sjPlot::plot_xtab(
+  titanic_data$Class_rec,
+  titanic_data$Survived_rec,
+  type = "bar",
+  margin =  "col",
+  bar.pos = c("dodge", "stack"),
+  title = "Descriptive plot",
+  summary.pos = "r", 
+  show.total = FALSE,
+  show.summary = TRUE)
+
+# Look at it
+proportions_vis
+
+# The 'save_plot()' function from this package has an easy way to save this figure for publication:
+?save_plot
+
+sjPlot::save_plot(
+  "06_Output/Descriptive_figure.png", # Accomodates png, jpg, svg or tif
+  fig = proportions_vis,
+  width = 14, # use centimeters regardless of the file type
+  height = 9,
+  dpi = 300, # set your resolution
+  theme = ggplot2::theme_get(),
+  label.color = "black",
+  label.size = 2.4,
+  axis.textsize = 0.8,
+  axis.titlesize = 0.75,
+  legend.textsize = 0.6,
+  legend.titlesize = 0.65,
+  legend.itemsize = 0.5) 
+# Now the plot is saved in the output folder!
+
+# There is also a super great package for visualization called 'ggstatsplot' - here, let's use the ggbarstats() function. 
+?ggbarstats
+# This visualization is similar to the one right above but will give a lot of stats! For a description: https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbarstats.html
+
+bar_plot <- ggstatsplot::ggbarstats(
+  data = titanic_data, 
+  x = Survived_rec, 
+  y = Class_rec, 
+  label = "both", 
+  palette = "Set1")
+
+# Look at the figure (object)
+bar_plot
+
+# Save this figure to a png
+png("06_Output/Descriptive_figure_two.png", width = 600, height = 500) 
+bar_plot
+dev.off() 
+
+# To visualize the residuals, you can use the corrplot package
+?corrplot
+
+corrplot::corrplot(chi_square_result$residuals, # The chi-square results object above - accessing the residuals
+                   is.cor = FALSE)
+
+# For a mosaic plot of standardized residuals, you can use mosaicplot() from 'graphics'.
+?mosaicplot
+# This function needs the basic table as input (created on line 59), called 'table'
+
+mosaicplot(t(table),
+           shade = TRUE, 
+           las = 2,
+           main = "Mosaic plot")
+
+# Save this figure to a png
+png("06_Output/Mosaic_plot.png", width = 500, height = 500) 
+mosaicplot(t(table),
+           shade = TRUE, 
+           las = 2,
+           main = "Mosaic plot")
+dev.off() 
+
+# Also save the balloonplot() table from above: 
+png("06_Output/Contingency_plot.png") 
+gplots::balloonplot(t(table),
+                    main = "", xlab ="", ylab = "", 
+                    text.size = .75,
+                    label.size = 1, 
+                    label.color = 'blue',
+                    label = TRUE, 
+                    show.margins = TRUE)
+dev.off() 
+
+## If you want the plots to be in a certain (higher) resolution for journals, you can save the image as a .tiff.
+# This follows the same format as saving a png, but specify the resolution:
+tiff("06_Output/Contingency_plot.tiff", units = "in", width = 5, height = 5, res = 300)
+gplots::balloonplot(t(table),
+                    main = "", xlab ="", ylab = "", 
+                    text.size = .75,
+                    label.size = 1, 
+                    label.color = 'blue',
+                    label = TRUE, 
+                    show.margins = TRUE)
+dev.off()
+# The resolution is much better for this figure as a tiff then png!
+```
+
