@@ -1,0 +1,274 @@
+---
+title: "07_CA"
+author: "Sglatt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+if (!require("descr")) {
+  install.packages("descr")
+  require("descr")
+}
+if (!require("dplyr")) {
+  install.packages("dplyr")
+  require("dplyr")
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  require("tidyverse")
+}
+if (!require("yhat")) {
+  install.packages("yhat")
+  require("yhat")
+}
+if (!require("boot")) {
+  install.packages("boot")
+  require("boot")
+}
+if (!require("apaTables")) {
+  install.packages("apaTables")
+  require("apaTables")
+}
+if (!require("performance")) {
+  install.packages("performance")
+  require("performance")
+}
+if (!require("rempsyc")) {
+  install.packages("rempsyc")
+  require("rempsyc")
+}
+if (!require("moments")) {
+  install.packages("moments")
+  require("moments")
+}
+```
+
+```{r data and directory}
+# This script uses 'bfi' dataset from the 'psych' package, which has 25 personality items.
+# For information about this dataset: https://www.personality-project.org/r/html/bfi.html
+
+# Load the data
+data(bfi)
+
+# Look at the dataset
+View(bfi)
+
+# The dataset has items but not total scores. The dataset documentation provides code to score the items:
+keys.list <- list(
+  agree = c("-A1", "A2", "A3", "A4", "A5"),
+  conscientious = c("C1", "C2", "C3", "-C4", "-C5"),
+  extraversion = c("-E1", "-E2", "E3", "E4", "E5"),
+  neuroticism = c("N1", "N2", "N3", "N4", "N5"),
+  openness = c("O1", "-O2", "O3", "O4", "-O5")
+)
+scores <- scoreItems(keys.list, bfi, min = 1, max = 6) # or just use the keys.list
+View(scores)
+# When you view the 'scores' object, a list comes up.
+# Access the 'scores' element from the list.
+View(scores$scores)
+
+# Make the 'scores' dataframe into an object
+data_scores <- scores$scores
+
+# Since the two datasets have the same number of rows and are aligned row-wise, use the 'cbind()' function to bind the columns together.
+# This just adds columns from the 'scores' dataset into the 'bfi' dataset:
+bfi <- cbind(bfi, data_scores)
+
+View(bfi)
+
+# Create a folder to save the output
+dir.create("07_Output")
+```
+
+# Correlation matrix
+```{r correlations}
+# Save the corr matrix as an object & in microsoft word
+Matrix <- apa.cor.table(
+  bfi[, c(
+    "agree",
+    "conscientious",
+    "neuroticism",
+    "openness",
+    "extraversion"
+  )],
+  filename = paste0("07_Output/Correlation_matrix_", Sys.Date(), ".doc"),
+  table.number = 1,
+  show.conf.interval = TRUE,
+  show.sig.stars = TRUE,
+  landscape = TRUE
+)
+
+# Look at it
+Matrix
+```
+
+```{r skew and kurt}
+# Check skew and kurtosis
+skewness(bfi$agree)
+skewness(bfi$extraversion)
+skewness(bfi$conscientious)
+skewness(bfi$neuroticism)
+skewness(bfi$openness)
+
+kurtosis(bfi$agree)
+kurtosis(bfi$extraversion)
+kurtosis(bfi$conscientious)
+kurtosis(bfi$neuroticism)
+kurtosis(bfi$openness)
+```
+
+# First, just fit a multiple/stepwise linear regression. 
+# For a part of the commonality function, you need to imput the lm regression object
+```{r regression}
+# Base linear regression with agree as the outcome
+
+# Step one: conscientious --> agree
+lm_regression_1 <- lm(
+  agree ~
+    conscientious,
+  data = bfi
+)
+
+# Step two: conscientious + neuroticism --> agree
+lm_regression_2 <- lm(
+  agree ~
+    conscientious
+    + neuroticism,
+  data = bfi
+)
+
+# Step three: conscientious + neuroticism + openness --> agree
+lm_regression_3 <- lm(
+  agree ~
+    conscientious
+    + neuroticism
+    + openness,
+  data = bfi
+)
+
+# Step four: conscientious + neuroticism + openness + extraversion--> agree
+lm_regression_4 <- lm(
+  agree ~
+    conscientious
+    + neuroticism
+    + openness
+    + extraversion,
+  data = bfi
+)
+
+# Look at R summaries for each step (but the stepwise table takes care of this!)
+summary(lm_regression_1)
+summary(lm_regression_2)
+summary(lm_regression_3)
+summary(lm_regression_4)
+
+# Make an APA formatted stepwise regression table & and save it to Word
+Regression_stepwise_table <- apa.reg.table(lm_regression_1,
+  lm_regression_2,
+  lm_regression_3,
+  lm_regression_4,
+  filename = paste0(
+    "07_Output/Stepwise_regr_table_",
+    Sys.Date(), ".doc"
+  ),
+  table.number = 2
+)
+
+
+# Look at the table
+Regression_stepwise_table
+```
+
+# Commonality analysis
+```{r commonality}
+# You can use the 'commonalityCoefficients' function from the 'yhat' package
+?commonalityCoefficients
+
+# commonality coefficients
+commonality <- commonalityCoefficients(
+  bfi, # your dataset
+  "agree", # outcome variable
+  list( # list all of the predictor variables
+    "conscientious",
+    "neuroticism",
+    "openness",
+    "extraversion"
+  )
+)
+
+# Look at the commonality results
+commonality
+
+# Individually extract the unique and common effects, with %s equaling the total R-squared
+Commonality_effects <- commonality$CC
+
+# Extract unique and total common effects per variable
+Commonality_var_totals <- commonality$CCTotalbyVar
+Commonality_var_totals <- as.data.frame(Commonality_var_totals)
+
+# Save the unique and common partitions in a csv
+write.csv(
+  Commonality_effects,
+  paste0("07_Output/commonality_coefficients_", Sys.Date(), ".csv")
+)
+
+# Save the total unique + common effects by variable
+write.csv(
+  Commonality_var_totals,
+  paste0("07_Output/commonality_by_var_", Sys.Date(), ".csv")
+)
+```
+
+# Bootstrap the commonality partitions
+```{r bootstrap}
+# Bootstrap to obtain confidence intervals for the unique/shared partitions
+
+# for input into the boot() function (yields same results as above)
+regr.out <- calc.yhat(lm_regression_4) # regression model with the final step
+
+# Now bootstrap
+set.seed(123456)
+boot.out <- boot(bfi,
+  boot.yhat,
+  1000,
+  lmOut = lm_regression_4,
+  regrout0 = regr.out
+)
+
+?booteval.yhat
+boot_results <- booteval.yhat(regr.out,
+  boot.out,
+  bty = "perc",
+  level = .95
+)
+
+# Look a the results
+boot_results # Yields a *lot* more then the bootstrapped commonality partitions.
+
+# To see the CIs that correspond to the unique and shared effects (by variable and by partition):
+
+# CIs for linear regression (b, Beta, r),
+# and commonality coefficients (unique, total common, total  (unique + common) by variable)
+Commonality_var_totals_CIs <- boot_results$combCIpm
+Commonality_var_totals_CIs # Look at the 'unique' and 'common' columns
+
+# CIs for each unique and common partition as well as regression R2 for each model combination
+Commonality_effects_CIs <- boot_results$combCIaps
+Commonality_effects_CIs
+
+# Save csvs with this info
+write.csv(
+  Commonality_var_totals_CIs,
+  paste0("07_Output/commonality_by_var_CIs_", Sys.Date(), ".csv") # This csv has CIs for the *total* unique and total common contribution for each variable
+)
+
+write.csv(
+  Commonality_effects_CIs,
+  paste0("07_Output/commonality_coefficients_CIs_", Sys.Date(), ".csv") # this csv has the CIs for *each* unique and common partition
+)
+```

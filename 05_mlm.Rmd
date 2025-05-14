@@ -14,51 +14,101 @@ knitr::opts_chunk$set(echo = TRUE)
 # There are two main packages that you can use to construct a multilevel model: 'lme4' and 'nlme'
 # Both packages are useful. e.g., lme4 is more user-friendly, and nlme can accomodate some complex functions more easily.
 
-if (!require("lme4")) {install.packages("lme4"); require("lme4")} 
+if (!require("lme4")) {
+  install.packages("lme4")
+  require("lme4")
+}
 # https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf
 
-if (!require("lmerTest")) {install.packages("lmerTest"); require("lmerTest")} 
+if (!require("lmerTest")) {
+  install.packages("lmerTest")
+  require("lmerTest")
+}
 # This package augments some functions in 'lme4' For example, lme4 won't directly yield p-values, but if you load this package, then lme4 will
 # https://cran.r-project.org/web/packages/lmerTest/lmerTest.pdf
 
-if (!require("sjPlot")) {install.packages("sjPlot"); require("sjPlot")} 
+if (!require("sjPlot")) {
+  install.packages("sjPlot")
+  require("sjPlot")
+}
 # This package can create APA-formatted results tables from lme4 results - a major timesaver (& benefit of using lme4)!
 # https://cran.r-project.org/web/packages/sjPlot/vignettes/tab_mixed.html
 
-if (!require("report")) {install.packages("report"); require("report")} 
+if (!require("report")) {
+  install.packages("report")
+  require("report")
+}
 # Report() will give you a write-up summary of lme4 objects!
 # https://www.rdocumentation.org/packages/report/versions/0.6.0
 
-if (!require("nlme")) {install.packages("nlme"); require("nlme")} 
+if (!require("nlme")) {
+  install.packages("nlme")
+  require("nlme")
+}
 # https://cran.r-project.org/web/packages/nlme/nlme.pdf
 
-if (!require("performance")) {install.packages("performance"); require("performance")} 
-if (!require("ICS")) {install.packages("ICS"); require("ICS")}
-if (!require("ICSOutlier")) {install.packages("ICSOutlier"); require("ICSOutlier")}
-if (!require("insight")) {install.packages("insight"); require("insight")}
+if (!require("performance")) {
+  install.packages("performance")
+  require("performance")
+}
+if (!require("ICS")) {
+  install.packages("ICS")
+  require("ICS")
+}
+if (!require("ICSOutlier")) {
+  install.packages("ICSOutlier")
+  require("ICSOutlier")
+}
+if (!require("insight")) {
+  install.packages("insight")
+  require("insight")
+}
 # Check the multilevel model for outliers
 # https://easystats.github.io/performance/articles/check_outliers
 
-if (!require("psychometric")) {install.packages("psychometric"); require("psychometric")} 
+if (!require("interactions")) {
+  install.packages("interactions")
+  require("interactions")
+}
+
+if (!require("psychometric")) {
+  install.packages("psychometric")
+  require("psychometric")
+}
 # This package has a function to calculate the Intraclass Correlation Coefficient (ICC)
 # https://www.rdocumentation.org/packages/psychometric/versions/2.4/topics/ICC.lme
 
-if (!require("DataCombine")) {install.packages("DataCombine"); require("DataCombine")} 
+if (!require("DataCombine")) {
+  install.packages("DataCombine")
+  require("DataCombine")
+}
 # Create an outcome variable for prospective models (i.e., a lead)
 # https://cran.r-project.org/web/packages/DataCombine/DataCombine.pdf
 
-if (!require("ggplot2")) {install.packages("ggplot2"); require("ggplot2")} 
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  require("ggplot2")
+}
 # For all things related to data visualization
 
-if (!require("EMAtools")) {install.packages("EMAtools"); require("EMAtools")} 
+if (!require("gridExtra")) {
+  install.packages("gridExtra")
+  require("gridExtra")
+}
+# Arrange plots
+
+if (!require("EMAtools")) {
+  install.packages("EMAtools")
+  require("EMAtools")
+}
 # When you try to install this package, you will recieve an error 'Warning: there is no package called ‘EMAtools’
-# This package used to house helpful functions for multilevel models. Unfortunately, it was removed from CRAN. 
+# This package used to house helpful functions for multilevel models. Unfortunately, it was removed from CRAN.
 # However, the functions that EMAtools uses are available on GitHub. Therefore, we can copy the code for the functions and then use them!
 # The GitHub repository is here: https://github.com/cran/EMAtools/tree/master
 ```
 
 ```{r functions}
-# The functions that we'll use from EMAtools (retrieved from GitHub) are: 
+# The functions that we'll use from EMAtools (retrieved from GitHub) are:
 
 # pmean()
 # This function calculates person-level means. This will create a level-2 variable that can be used in tandem with person-centered means. This is useful if you are interested in both the within-person and between-person effects.
@@ -68,45 +118,45 @@ pmean <- function(ID, var) {
 }
 
 # pcenter()
-# This function centers on person-means.(How much each individual score differs from the average score for **that individual**) 
+# This function centers on person-means.(How much each individual score differs from the average score for **that individual**)
 
 pcenter <- function(ID, var) {
-  centered<- var-ave(var, ID, FUN = function(x) mean(x, na.rm = TRUE))
+  centered <- var - ave(var, ID, FUN = function(x) mean(x, na.rm = TRUE))
   return(centered)
 }
 
 # gcenter()
 # This function centers on grand-means. (How much each individual score differs from the average score for **the entire sample**)
 gcenter <- function(var) {
-  centered <- var-(mean(var, na.rm = TRUE))
+  centered <- var - (mean(var, na.rm = TRUE))
   return(centered)
 }
 
 # lme.d.score()
 # This function calculates d scores from an lme4 or nlme object. This is just a nice way to get effect sizes!
-lme.dscore <- function(mod,data,type) {
+lme.dscore <- function(mod, data, type) {
   if (type == "lme4") {
     mod1 <- lmerTest::lmer(mod, data = data)
     eff <- cbind(summary(mod1)$coefficients[, 4], summary(mod1)$coefficients[, 3])
   }
 
   if (type == "nlme") {
-    eff = cbind(summary(mod)$tTable[, 4],summary(mod)$fixDF$terms)
+    eff <- cbind(summary(mod)$tTable[, 4], summary(mod)$fixDF$terms)
   }
 
   colnames(eff) <- c("t", "df")
   eff <- as.data.frame(eff)
-  eff$d <- (2*eff$t)/sqrt(eff$df)
+  eff$d <- (2 * eff$t) / sqrt(eff$df)
   eff <- eff[-1, ]
   return(eff)
 }
 ```
 
 ```{r data and directory}
-# This script will use a simulated data that can be created in '05_simulate_data.Rmd'
+# This script will *first* use a simulated data that can be created in '05_simulate_data.Rmd'
 dataset <- read.csv("05_data.csv")
 
-# Look at the dataset 
+# Look at the dataset
 View(dataset)
 
 # Remove the first column (remember, [rows, columns])
@@ -114,6 +164,21 @@ dataset <- dataset[, -1]
 
 # Create a folder to save the output
 dir.create("05_Output")
+```
+
+# Basic structure
+```{r binfo}
+# Models follow the same form as a linear regression, which is
+# lm(x ~ a + b + c, data = your_dataset)
+
+# Two key features in a multilevel model are the *intercepts* - the starting point of each person, and the *slope* - the rate of change of a relationship between variables.
+
+# You can have fixed effects (effects you're estimating across the entire population) and random effects (effects that vary by group, like person, subject, or site).
+# You can choose, in any combination, to:
+# Fix the intercepts - so everyone has the same starting place,
+# Have random intercepts - everyone has different starting points,
+# Fix the slope - everyone has the same rate of change between variables,
+# Have random slopes - people have different rates of change between variables.
 ```
 
 # Create multilevel model predictor state and trait variables
@@ -126,14 +191,94 @@ dataset$depression_pmeans <- pmean(dataset$id, dataset$depression)
 # person-centered mean scores (a state variable). This line creates a new 'depression_pcent' variable
 dataset$depression_pcent <- pcenter(dataset$id, dataset$depression)
 
-# Including the between- and within-person components in a multilevel model allows you analyze if: 
-# 1) an individual’s average level of depression (between-person) predicts an outcome, and 
-# 2) if deviations from individuals' own average level of depression at a given timepoint (within-person) predicts an outcome. 
+# Including the between- and within-person components in a multilevel model allows you analyze if:
+# 1) an individual’s average level of depression (between-person) predicts an outcome, and
+# 2) if deviations from individuals' own average level of depression at a given timepoint (within-person) predicts an outcome.
 
 # In multilevel models, each variable is a 'level'
-# Level 1 variables are day-to-day variables. Person-mean centered scores are level 1. A 'time' variable would be level 1. 
+# Level 1 variables are day-to-day variables. Person-mean centered scores are level 1. A 'time' variable would be level 1.
 # Level 2 variables are variables that have the same value at each time per person. For example, gender. Participant-mean scores are level 2.
 # Level 3 variables are clustered/nested variables. For example, observations within days within people; observations within participants within groups (e.g., control/treatment).
+```
+
+# Data to use in analysis
+```{r simulate data}
+set.seed(123456)
+
+n_clinics <- 4
+n_people_per_clinic <- 6
+n_obs <- 5
+
+clinic <- rep(1:n_clinics, each = n_people_per_clinic * n_obs)
+id <- rep(1:(n_clinics * n_people_per_clinic), each = n_obs)
+time <- rep(1:n_obs, times = n_clinics * n_people_per_clinic)
+
+clinic_intercepts <- rnorm(n_clinics, 0, 1)
+person_intercepts <- rnorm(n_clinics * n_people_per_clinic, 0, 0.8)
+person_slopes <- rnorm(n_clinics * n_people_per_clinic, 1.5, 0.4)
+
+depression_pcent <- rnorm(length(id)) # momentary depression, person-centered
+intercepts <- clinic_intercepts[clinic] + person_intercepts[id]
+slopes <- person_slopes[id]
+
+si <- intercepts + slopes * depression_pcent + rnorm(length(id), 0, 1)
+
+dataset_nest <- data.frame(
+  clinic = factor(clinic),
+  id = factor(id),
+  time = time,
+  depression_pcent = depression_pcent,
+  si = si
+)
+
+# Add person-mean depression (between-person effect)
+dataset_nest <- dataset_nest %>%
+  group_by(id) %>%
+  mutate(depression_pmeans = mean(depression_pcent)) %>%
+  ungroup()
+
+# Add tx arm
+set.seed(123456)
+treatment_assignments <- data.frame(
+  id = unique(dataset_nest$id),
+  treatment_arm = sample(c(0, 1), size = length(unique(dataset_nest$id)), replace = TRUE)
+)
+
+dataset_nest <- left_join(dataset_nest, treatment_assignments, by = "id")
+dataset_nest$treatment_arm <- factor(dataset_nest$treatment_arm)
+```
+
+# Visualize the data
+```{r initial vis}
+# plot suicidal ideation by trait-like depression (person-mean) (between person)
+between_person_plot <- dataset_nest %>%
+  ggplot(aes(depression_pmeans, si)) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "Trait depression", y = "suicidal ideation") +
+  theme_classic()
+
+between_person_plot
+
+# Plot suicidal ideation by momentary depression (person centered) (within-person)
+within_person_plot <- dataset_nest %>%
+  ggplot(aes(x = depression_pcent, y = si, group = id, color = id)) +
+  geom_smooth(method = "lm", se = FALSE, size = .45) +
+  labs(x = "Momentary depression", y = "suicidal ideation") +
+  theme_classic() +
+  theme(legend.position = "none")
+
+within_person_plot
+
+# The same as 'within_person_plot', just make each person their own plot.
+within_person_plots <- dataset_nest %>%
+  ggplot(aes(x = depression_pcent, y = si, group = id, color = id)) +
+  geom_smooth(method = "lm", se = FALSE, size = .45) +
+  labs(x = "Momentary depression", y = "suicidal ideation") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  facet_wrap(~id)
+
+within_person_plots
 ```
 
 # Unconditional model
@@ -145,17 +290,25 @@ dataset$depression_pcent <- pcenter(dataset$id, dataset$depression)
 ?lmer
 
 # Fit the unconditional model
-unconditional_model <- lmer(si ~ 1 + (1 | id), 
-                           REML = TRUE, # This is the default, so you do not need to include this line
-                           data = dataset)
+unconditional_model <- lmer(si ~ 1 + (1 | id),
+  REML = TRUE, # This is the default, so you do not need to include this line. If you turn this off with the REML = FALSE option, lmer will use the optimization of the log-likelihood to fit the model (which other stats softwares do by default, like Stata).
+  data = dataset_nest
+)
 
-# The primary statistic that you'll want from the unconditional model is the Intraclass Correlation Coefficient (ICC). 
+# The (1 | id) part of the equation is unique to multilevel models
+# Everything to the left of the | indicates the effects that should be random,
+# and the variable to the right of the | is the grouping variable across which the effects should vary.
+# The 1 indicates the intercept
+
+# In this model,
+# The 1 outside of the () specifies the fixed mean global intercept,
+# And the (1 | id) specifies that intercepts vary for each individual.
+# So in technical terms, in this model, the intercept is allowed to vary between people around the mean intercept of all people (the global intercept).
+
+# The primary statistic that you'll want from the unconditional model is the Intraclass Correlation Coefficient (ICC).
 # The ICC quantifies variance due to between-person and variance that is within-person. If the ICC = .60, then 60% of the variance in the dependent variable is due to between-group differences, and the remaining 40% is due to within-group differences.
 
-# You can derive the ICC from the sjPlot table, with tab_model()
-tab_model(unconditional_model)
-
-# There is also an 'ICC1.lme()' function from the psychometric package that can calculate ICC
+# There is an 'ICC1.lme()' function from the psychometric package that can calculate ICC
 ?ICC1.lme()
 ICC1.lme(si, id, data = dataset)
 ```
@@ -164,88 +317,474 @@ ICC1.lme(si, id, data = dataset)
 ```{r two-level model}
 # Now let's add a predictor variable of depression
 # We'll include the between-person component of depression (created with pmean()) and the within-person component (created with pcenter())
-# The participant-mean score is 'Level 2' and individual deviations from participant-mean scores is 'Level 1'. 
-# You do not need to specify which level a variable is! lme4 automatically recognizes which level a variable is. 
+# The participant-mean score is 'Level 2' and individual deviations from participant-mean scores is 'Level 1'.
+# You do not need to specify which level a variable is! lme4 automatically recognizes which level a variable is.
 
-# For an example publication that constructs this exact type of multilevel model, see 
+# For an example publication that constructs this exact type of multilevel model, see
 # Blendermann, M., Breaux, R., Fried, E. I., Naragon-Gainey, K., Starr, L. R., Stewart, J., & Teachman, B. A. (2025). Anxiety, worry, and difficulty concentrating: A longitudinal examination of concurrent and prospective symptom relationships. Behavior Therapy.
 
-predictor_model <- lmer(
-  si ~  depression_pmeans
-  + depression_pcent 
-  + day # Add a time variable into the model. This is a 'fixed effect of time' and is standard to include.
-  + (1 | id),
-  data = dataset)
+predictor_model_one <- lmer(
+  si ~ depression_pmeans
+    + depression_pcent
+    + time # Add a time variable into the model. This is a 'fixed effect of time' and is standard to include.
+    + (1 | id),
+  data = dataset_nest
+)
 
-summary(predictor_model)
+summary(predictor_model_one)
 
 # Create an APA-style table with tab_model() from sjPlot
 ?tab_model
-tab_model(predictor_model,
-          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+tab_model(predictor_model_one,
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+)
 
 # Convert the estimates to effect sizes (in Cohen's d)
-lme.dscore(predictor_model, data = dataset, type = "lme4")
+lme.dscore(predictor_model_one, data = dataset_nest, type = "lme4")
 
 # Just like in the '03...Rmd' file, you can use report() to get a write-up of the results from 'lme4' objects!
-report(predictor_model)
+report(predictor_model_one)
+
+# Visualize this model -
+# Plot function
+plot_model <- function(model, title) {
+  dataset_nest$predicted <- predict(model)
+
+  ggplot(dataset_nest, aes(x = depression_pcent, y = si, color = id)) +
+    geom_point(alpha = 0.5) +
+    geom_line(aes(y = predicted), size = 1) +
+    labs(title = title, x = "Depression (person-centered)", y = "SI") +
+    theme_minimal() +
+    theme(legend.position = "none")
+}
+
+mlm_fig_one <- plot_model(predictor_model_one, "Random intercept, fixed slope")
+mlm_fig_one
 ```
 
-```{r vary across participants}
+```{r p model two}
 # The model with '(1 | id)' has a random intercept and fixed slope -
-# so each participant has their own starting place, but the slope is the same for each participant. 
-# If you want a random slope for one of the variables, replace the 1 with the variable.
-# To let the momentary (person-centered) depression vary across persons, this would be '(depression_pcent | id)'
+# so each participant has their own starting place, but the slope is the same for each participant.
+# If you want a random slope for one of the variables,
+# This would be '(1 + depression_pcent | id)'
 
 predictor_model_two <- lmer(
-  si ~  depression_pmeans
-  + depression_pcent 
-  + day 
-  + (depression_pcent | id), # Now, the model has a random intercept as well as a random slope for momentary depression
-  data = dataset)
+  si ~ depression_pmeans
+    + depression_pcent
+    + time
+    + (1 + depression_pcent | id), # Now, the model has a random intercept as well as a random slope for momentary depression/
+  data = dataset_nest
+)
 
+# Look at a summary of the model:
 summary(predictor_model_two)
 
+# Importantly, in (1 + depression_pcent | id), the intercepts and slopes are correlated.
+
 # You can include more then one model in the APA-formatted table!
-tab_model(predictor_model,
-          predictor_model_two,
-          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+tab_model(predictor_model_one,
+  predictor_model_two,
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+)
+
+# To save this as a Microsoft Word doc, just add a file path at the end!
+tab_model(predictor_model_one,
+  predictor_model_two,
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars",
+  file = "05_Output/MLM_table_one.doc"
+)
 
 # Which model is better to use (random intercept and fixed slope, or random intercept and random slope)?
-# You can use an ANOVA to test for a significant difference between the models. 
+# You can use an ANOVA to test for a significant difference between the models.
 # If there is no significant difference, then use the model with random intercept and fixed slope.
-anova(predictor_model, predictor_model_two)
+anova(predictor_model_one, predictor_model_two)
+
+# You can also test for the significance of a random effect with a likelihood ratio test for removing a particular random effect from a model.
+ranova(predictor_model_two)
+
+# The Performance package compares multiple models and ranks them based on fit with
+performance::compare_performance(predictor_model_one,
+  predictor_model_two,
+  rank = TRUE
+)
+
+# Visualize
+mlm_fig_two <- plot_model(predictor_model_two, "Random intercept, random slope (correlated)")
+mlm_fig_two
+```
+
+
+```{r p model three}
+# As a reminder,
+# Everything to the left of the | indicates the effects that should be random,
+# and the variable to the right of the | is the grouping variable across which the effects should vary.
+# The 1 indicates the intercept
+
+# To have a *fixed* intercept while keeping the slope random, replace the 1 in the () with a 0
+# You would do this when you expect that the grouping structure (id) has no effect on the intercept, but that the slope will vary between id's.
+# For example, in this model, you are suggesting that there are no individual differences in starting levels of the outcome (si), but there are individual differences in how depression affects si
+# This model is uncommon in psych theory/analysis, because you often expect that baseline levels *and*  responses vary across people.
+
+# To fix the correlations between the random effects to 0, include the random effects in separate terms in the model:
+predictor_model_three <- lmer(
+  si ~ depression_pmeans
+    + depression_pcent
+    + time
+    + (1 | id) # Random effects are separate
+    + (0 + depression_pcent | id),
+  data = dataset_nest
+)
+# Another way to accomplish this is by (depression_pcent || id)
+
+# Visualize
+mlm_fig_three <- plot_model(predictor_model_three, "Random intercept, random slope (uncorrelated)")
+mlm_fig_three
+# Visually, there is not much difference between the correlated/uncorrelated random intercept + slope.
+```
+
+```{r p model four}
+# For a random slope and no random intercept
+predictor_model_four <- lmer(
+  si ~ depression_pmeans
+    + depression_pcent
+    + time
+    + (0 + depression_pcent | id), # Now, the model has a random slope for momentary depression, no random intercept
+  data = dataset_nest
+)
+
+# Visualize
+mlm_fig_four <- plot_model(predictor_model_four, "Random slope (no Intercept)")
+mlm_fig_four
+```
+
+# Visualize the intercept/slope differences above
+```{r visualize slope/intercept data}
+# Our models are:
+# predictor_model_one: Random intercept only
+# predictor_model_two: Random intercept + random slope (correlated)
+# predictor_model_three: Random intercept + random slope (uncorrelated)
+# predictor_model_four: Random slope only (no random intercept)
+
+# Plot these models to see the differences
+grid.arrange(mlm_fig_one, mlm_fig_two, mlm_fig_three, mlm_fig_four,
+  ncol = 2
+)
+
+# All models in a table
+tab_model(
+  predictor_model_one,
+  predictor_model_two,
+  predictor_model_three,
+  predictor_model_four,
+  show.se = TRUE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+  #  , file = "05_Output/MLM_table_three.doc"
+)
+```
+
+# Add in a level of nesting 
+```{r 2 lv nest model one}
+# For example, people within clinics
+# To represent this type of structure, ( 1 | clinic/id). The rest of the formula is the same.
+# The order of variables in this structure matters! -
+# Since people are WITHIN clinics, clinic should be listed first.
+
+# For example, an unconditional means model for the outcome would be
+nest_unconditional_model_1 <- lmer(si ~ 1 + (1 | clinic / id),
+  data = dataset_nest
+)
+
+# This is the *same* thing as
+nest_unconditional_model_2 <- lmer(si ~ 1 + (1 | clinic) + (1 | id),
+  data = dataset_nest
+)
+
+# This model has random intercept for each clinic and random intercept for each id within clinic.
+
+# To add a predictor, it is the same syntax as usual with the addition of clinic/id nesting.
+# This allows a random intercept for each clinic and a random intercept for each id within clinic
+nest_model_1a <- lmer(
+  si ~ depression_pcent
+    + (1 | clinic / id),
+  data = dataset_nest
+)
+
+# This is the same syntax as
+nest_model_1b <- lmer(
+  si ~ depression_pcent +
+    (1 | clinic) +
+    (1 | id),
+  data = dataset_nest
+)
+
+summary(nest_model_1a)
+summary(nest_model_1b)
+
+# Make a table
+# All models in a table
+tab_model(
+  nest_model_1a,
+  show.se = TRUE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars",
+  file = "05_Output/MLM_table_two.doc"
+)
+
+# Visualize
+# extract predicted values
+dataset_nest$pred_1a <- predict(nest_model_1a)
+
+# now plot individuals nested in clinics
+mlm_fig_five <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(y = pred_1a, group = id, color = id), size = 1) +
+  facet_wrap(~clinic, scales = "free") +
+  labs(
+    title = "Nested effects (random intercept, fixed slope)",
+    x = "Momentary Depression",
+    y = "SI"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+mlm_fig_five
+
+# Each panel = a clinic
+# Each line = an individual’s predicted relationship between depression and SI
+# This shows variation in only intercepts at the individual level, nested within clinics. Slope is fixed.
+```
+
+
+```{r 2 lv nest model two}
+# To add random slopes, it is the same syntax as before with the addition of clinic/id nesting.
+# This allows the intercept and slope to vary by id (nested within clinic) and also allows clinic-level variation in intercepts and slopes.
+nest_model_2a <- lmer(
+  si ~ depression_pcent
+    + (1 + depression_pcent | clinic / id),
+  data = dataset_nest
+)
+
+# This is the same syntax as
+nest_model_2b <- lmer(
+  si ~ depression_pcent +
+    (1 + depression_pcent | clinic) +
+    (1 + depression_pcent | clinic:id),
+  data = dataset_nest
+)
+
+# Look at the table
+tab_model(nest_model_2b,
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+)
+
+# Visualize
+# extract predicted values
+dataset_nest$pred_2a <- predict(nest_model_2a)
+
+# now plot individuals nested in clinics
+mlm_fig_six <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(y = pred_2a, group = id, color = id), size = 1) +
+  facet_wrap(~clinic, scales = "free") +
+  labs(
+    title = "Nested effects (random intercept, random slope - correlated)",
+    x = "Momentary Depression",
+    y = "SI"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+mlm_fig_six
+
+# Now, this figure shows variation in intercepts & slopes at the individual level, nested within clinics
+```
+
+
+```{r 2 lv nest model three}
+# For the random slopes to be uncorrelated with the intercept, include the random effects separately (as before)
+nest_model_3a <- lmer(
+  si ~ depression_pcent +
+    (1 | clinic / id) +
+    (0 + depression_pcent | clinic / id),
+  data = dataset_nest
+)
+
+# This is the same syntax as
+nest_model_3b <- lmer(
+  si ~ depression_pcent +
+    (1 | clinic) +
+    (0 + depression_pcent | clinic) +
+    (1 | clinic:id) +
+    (0 + depression_pcent | clinic:id),
+  data = dataset_nest
+)
+
+summary(nest_model_3a)
+summary(nest_model_3b)
+
+# ...& the same thing can be accomplished with ||
+nest_model_3c <- lmer(
+  si ~ depression_pcent +
+    (depression_pcent || clinic / id),
+  data = dataset_nest
+)
+
+summary(nest_model_3c)
+
+# Which is the same syntax as
+nest_model_3d <- lmer(
+  si ~ depression_pcent +
+    (depression_pcent || clinic) +
+    (depression_pcent || clinic:id),
+  data = dataset_nest
+)
+
+summary(nest_model_3d)
+
+# Visualize
+# extract predicted values
+dataset_nest$pred_3a <- predict(nest_model_3a)
+
+# now plot individuals nested in clinics
+mlm_fig_seven <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(y = pred_3a, group = id, color = id), size = 1) +
+  facet_wrap(~clinic, scales = "free") +
+  labs(
+    title = "Nested effects (random intercept, random slope - uncorrelated)",
+    x = "Momentary Depression",
+    y = "SI"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
+```{r 2 lv nest model four}
+# For a random slope and no random intercept
+nest_model_4a <- lmer(
+  si ~ depression_pmeans
+    + depression_pcent
+    + time
+    + (0 + depression_pcent | clinic / id), # Now, the model has a random slope for momentary depression, no random intercept
+  data = dataset_nest
+)
+
+summary(nest_model_4a)
+
+# Visualize
+# extract predicted values
+dataset_nest$pred_4a <- predict(nest_model_4a)
+
+# now plot individuals nested in clinics
+mlm_fig_eight <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(y = pred_4a, group = id, color = id), size = 1) +
+  facet_wrap(~clinic, scales = "free") +
+  labs(
+    title = "Nested effects (random slope, no intercept)",
+    x = "Momentary Depression",
+    y = "SI"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+mlm_fig_eight
+```
+
+# Put all nests together
+```{r 2 lv nests}
+# Table
+tab_model(
+  nest_model_1a,
+  nest_model_2a,
+  nest_model_3a,
+  nest_model_4a,
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+)
+
+# Compare
+performance::compare_performance(
+  nest_model_1a,
+  predictor_model_one,
+  rank = TRUE
+)
+
+# Figures
+grid.arrange(mlm_fig_one, mlm_fig_two, mlm_fig_four,
+  mlm_fig_five, mlm_fig_six, mlm_fig_eight,
+  ncol = 3
+)
+```
+
+# Recap notes
+```{r list}
+# To recap,
+
+# (1 | id)
+## Random intercept for each id, fixed slope
+## Each person has their own intercept, but the slope for depression_pcent is fixed across individuals (the same for everyone).
+
+# (1 + depression_pcent | id)
+## Random intercept and random slope for depression_pcent, allowing correlation between them
+## - Each person has their own intercept and slope. This allows the relationship between depression_pcent and si to vary between individuals, and also estimates the correlation between intercept and slope.
+
+# (0 + depression_pcent | id)
+## Only a random slope (no random intercept); the intercept is fixed across individuals
+## There is no variation in the baseline (intercept) between people, but the slope of depression_pcent can vary across individuals. The intercept is the same for everyone.
+
+# (depression_pcent || id)
+## Shorthand for (1 | id) + (0 + depression_pcent | id); specifies random intercept and slope with no correlation between them
+## Same as (1 | id) + (0 + depression_pcent | id), where the random intercept and random slope are uncorrelated.
+
+# (1 | id) + (0 + depression_pcent | id)
+## Random intercept and random slope for depression, but modeled as **uncorrelated** components (same as || syntax)
+## This is the same as (depression_pcent || id), where intercept and slope are uncorrelated. Random intercepts are allowed, and the slope varies by individual.
+
+# (1 | clinic / id)
+## Random intercept for each clinic and a random intercept for each id within clinic, fixed slope
+## There’s a random intercept for clinics and also for individuals, but the slope of depression_pcent is fixed across both groups.
+
+# (1 + depression_pcent | clinic / id)
+## This allows the intercept and slope to vary by id (nested within clinic) and also allows clinic-level variation in intercepts and slopes.
+## Each person has their own intercept and slope for depression_pcent, and the model allows for differences between clinics in both intercept and slope.
+
+# (0 + depression_pcent | clinic / id)
+## This allows only random slopes (no random intercept), with intercept fixed across individuals and clinics.
+## The slope of depression_pcent can vary by person, but the baseline value (intercept) is assumed to be the same across all individuals within a clinic.
+## There is **no random intercept**; only the relationship between depression_pcent and si varies across individuals and clinics.
 ```
 
 # The above models used an outcome variable (si) that was at the same timepoint as the predictor variables. 
 # If you want to predict the outcome at the next timepoint:
 ```{r prospective variable}
-# You can lead a variable using the slide() function from the 'DataCombine' package 
+# You can lead a variable using the slide() function from the 'DataCombine' package
 ?slide
 # https://www.rdocumentation.org/packages/DataCombine/versions/0.2.21/topics/slide
 
-dataset <- slide(data = dataset, 
-                 Var = "si",         # The outcome variable
-                 TimeVar = "day",    # Time variable
-                 GroupVar = "id",    # Grouping variable
-                 NewVar = "si_lead", # The name of the new variable
-                 slideBy = 1)        # Lead the variable by one time unit
+dataset_nest <- slide(
+  data = dataset_nest,
+  Var = "si", # The outcome variable
+  TimeVar = "time", # Time variable
+  GroupVar = "id", # Grouping variable
+  NewVar = "si_lead", # The name of the new variable
+  slideBy = 1
+) # Lead the variable by one time unit
 
-# Now, use this variable as the outcome variable, and then you will be predicting next-day suicidal ideation. 
+# Now, use this variable as the outcome variable, and then you will be predicting next-day suicidal ideation.
 # If you want to predict *change* in suicidal ideation, then include the same-day suicidal ideation variable as a predictor/covariate.
 prospective_model <- lmer(
-  si_lead ~  depression_pmeans
-  + depression_pcent 
-# + si
-  + day 
-  + (1 | id),
-  data = dataset)
+  si_lead ~ depression_pmeans
+    + depression_pcent
+    # + si
+    + time
+    + (1 | id),
+  data = dataset_nest
+)
 
 summary(prospective_model)
 
 # APA style table!
 tab_model(prospective_model,
-          show.se = FALSE, show.std = TRUE, show.stat = FALSE,  p.val = "kr", show.df = FALSE, p.style = "stars")
+  show.se = FALSE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
+)
 
 # Convert the estimates to effect sizes (in Cohen's d)
 lme.dscore(prospective_model, data = dataset, type = "lme4")
@@ -253,30 +792,31 @@ lme.dscore(prospective_model, data = dataset, type = "lme4")
 
 # Check for outliers
 ```{r two-level model outliers}
-# How can you check for outliers? 
+# How can you check for outliers?
 ?check_outliers
 
-outlier_check <- performance::check_outliers(predictor_model, method = "all") 
-# There are several different methods for outlier removal that this function uses. 
-# You can use a specific one, or you can you use 'all' - which classifies a point as an outlier if it is identified as such by at least 1/2 of the methods. 
+outlier_check <- performance::check_outliers(predictor_model_one, method = "all")
+# There are several different methods for outlier removal that this function uses.
+# You can use a specific one, or you can you use 'all' - which classifies a point as an outlier if it is identified as such by at least 1/2 of the methods.
 # For more information: https://easystats.github.io/performance/articles/check_outliers
 outlier_check
 
 # If there is an outlier, extract the row in the data that is the outlier
-outlier_indices <- which(outlier_check) 
-insight::get_data(predictor_model)[outlier_indices, ] # Row 1178, id 73, day 18
+outlier_indices <- which(outlier_check)
+insight::get_data(predictor_model_one)[outlier_indices, ] # Row 1178, id 73, day 18
 
-# Remove the outlier from the dataset
-dataset_filtered <- dataset[!(dataset$id == 73 & dataset$day == 18), ] 
+# Remove the outlier from the dataset - if applicable
+dataset_filtered <- dataset[!(dataset$id == 73 & dataset$day == 18), ]
 # (Remember that to filter a data frame you follow [rows, columns]. Here, you use the & operator to specify the specific row identified above by 'id' and 'day'. Because ! inverts the condition, this now keeps every row *besides* the one you specified.)
 
 # Now, just rerun the model!
 predictor_model_new <- lmer(
-  si ~  depression_pmeans
-  + depression_pcent 
-  + day 
-  + (1 | id),
-  data = dataset_filtered) # Use the filtered data
+  si ~ depression_pmeans
+    + depression_pcent
+    + day
+    + (1 | id),
+  data = dataset_filtered
+) # Use the filtered data
 
 summary(predictor_model_new)
 
@@ -284,36 +824,170 @@ summary(predictor_model_new)
 outlier_check_2 <- performance::check_outliers(predictor_model_new, method = "all")
 ```
 
-# Plots
-```{r plots}
-# plot suicidal ideation by trait-like depression (person-mean) (between person)
-between_person_plot <- dataset %>% 
-  ggplot(aes(depression_pmeans, si)) +
-  geom_smooth(method = 'lm', se = TRUE) + 
-  labs(x = "Trait depression", y = "suicidal ideation") +
-  theme_classic() 
+# RCT / treatment effects
+```{r rct mlm}
+# A common use of multilevel models is to estimate treatment effects
+# The most basic form is
+# 'outcome_variable ~ treatment + time + treatment:time' & treatment:time is the effect of interest
+# Just like the linear model, treatment*time = treatment + time + treatment:time
 
-between_person_plot
+# In the multilevel model, this is
+treatment_model_1 <- lmer(
+  si ~ treatment_arm
+    + time
+    + treatment_arm:time
+    # + any variable(s) you want to adjust for
+    + (1 | id),
+  data = dataset_nest
+)
 
-# Plot suicidal ideation by momentary depression (person centered) (within-person)
-within_person_plot <- dataset %>% 
-  ggplot(aes(x = depression_pcent, y = si, group = id, color = id))+
-  geom_smooth(method = "lm", se = FALSE, size = .45) + 
-  labs(x = "Momentary depression", y = "suicidal ideation") +
-  theme_classic() +
-  theme(legend.position = "none") 
+summary(treatment_model_1)
 
-within_person_plot
+# Treat time as a factor
+treatment_model_2 <- lmer(
+  si ~ treatment_arm
+    + as.factor(time)
+    + treatment_arm:as.factor(time)
+    + (1 | id),
+  data = dataset_nest
+)
 
-# The same as 'within_person_plot', just make each person their own plot.
-within_person_plots  <- dataset %>% 
-  ggplot(aes(x = depression_pcent, y = si, group = id, color = id))+
-  geom_smooth(method = "lm", se = FALSE, size = .45) + 
-  labs(x = "Momentary depression", y = "suicidal ideation") +
-  theme_classic() +
-  theme(legend.position = "none") +
-  facet_wrap(~id)
+summary(treatment_model_2)
 
-within_person_plots
+# If you remove the independent treatment effect (just 'time + treatment:time'), this parallels an ANCOVA
+# For rationale, see https://solomonkurz.netlify.app/blog/2022-06-13-just-use-multilevel-models-for-your-pre-post-rct-data/
+treatment_model_3 <- lmer(
+  si ~
+    +time
+    + treatment_arm:time
+    + (1 | id),
+  data = dataset_nest
+)
+
+summary(treatment_model_3)
+
+# To nest within clinics,
+treatment_model_4 <- lmer(
+  si ~ time * treatment_arm + (1 | clinic / id),
+  data = dataset_nest
+)
+
+summary(treatment_model_4)
+# This model has:
+## A random intercept for each clinic
+## A random intercept for each subject nested within clinic
+
+# What about partial nesting?
+lmer(
+  y ~ time * tx +
+    (1 | clinic:id) +
+    (0 + time | clinic:id) +
+    (0 + time:tx | clinic) +
+    (0 + tx | clinic),
+  data = data
+)
+
+# There might be a case where you think that clinics  that are allocated participants that report worse symptoms at treatment start have better outcomes
+# For this situation, you would want to allow for separate covariances in each treatment group
+# To do this, update the variance-covariance matrix at the clinic level
+treatment_model_5 <- lmer(
+  si ~ time * treatment_arm +
+
+    (1 | clinic:id) + # random intercept for each subject nested within clinic
+    # ... allows each participant to have their own baseline level
+
+    (1 | clinic) + # random intercept for each clinic
+    # accounts for between-clinic differences in overall outcome levels
+
+    (0 + treatment_arm + time:treatment_arm | clinic), # random slopes for treatment_arm and time × treatment_arm interaction by clinic
+  #  This lets the effect of treatment vary by clinic
+  # The '0' here is so that there isn't a clinic-level intercept - since that's already in (1 | clinic)
+  data = dataset_nest
+)
+
+summary(treatment_model_5)
 ```
+
+```{r conditional growth models}
+# Conditional growth models overlap  with common multilevel models
+# The conditional model allows each person to have a unique rate of change - everyone has a different slope for time.
+# To do this, add a random slope for the "time" variable, in the same way of (1 + depression_pcent | id)
+# This allows individual growth trajectories and explains growth with predictors
+
+# Unconditional growth model
+unconditional_growth_model <- lmer(
+  si ~
+    time
+    + (1 + time | id),
+  data = dataset_nest
+)
+
+summary(unconditional_growth_model)
+
+# Conditional growth model for treatment effects
+conditional_growth_model_1 <- lmer(
+  si ~
+    time * treatment_arm
+    + (1 + time | id),
+  data = dataset_nest
+)
+
+summary(conditional_growth_model_1)
+
+# Now, a "conditional growth model with a dropped random slope" is the same thing, in technical terms, as the standard tx model
+treatment_model_one <- lmer(
+  si ~ treatment_arm * time
+    + (1 | id),
+  data = dataset_nest
+)
+
+# a "conditional growth model with a dropped random intercept" uses the same syntax as before, where
+# (0 + depression_pcent | id)
+conditional_growth_model_2 <- lmer(
+  si ~ treatment_arm * time
+    + (0 + time | id),
+  data = dataset_nest
+)
+
+# And the same thing is true for dropping the intercept-slope correlation with
+# (1 | id) + (0 + depression_pcent | id) [[[ OR (depression_pcent || id) ]]]
+conditional_growth_model_3a <- lmer(
+  si ~ time * treatment_arm +
+    (time || id),
+  data = dataset_nest
+)
+
+# This is the same model as above
+conditional_growth_model_3b <- lmer(
+  si ~ time * treatment_arm +
+    (1 | id) +
+    (0 + time | id),
+  data = dataset_nest
+)
+
+# And a "conditional three-level growth model" adds nesting, like before, with
+# (clinic / id)
+conditional_growth_model_4 <- lmer(
+  si ~ time * treatment_arm + (1 + time | clinic / id),
+  data = dataset_nest
+)
+
+# Finally, in the case where you think that clinics  that are allocated participants that report worse symptoms at treatment start have better outcomes (more room for improvement):
+conditional_growth_model_5 <- lmer(
+  si ~ time * treatment_arm
+    + (time | clinic:id)
+    + (time | clinic)
+    + (0 + treatment_arm + time:treatment_arm | clinic),
+  data = dataset_nest
+)
+```
+
+```{r change time form}
+# The conditional growth models all treat time as linear
+
+# To change time to a Quadratic trend, replace 'time' with '(time + I(time^2))' everytime that it appears
+
+# For a piecewise growth curve model (where you have distinct periods of time that you want to model), replace 'time' with (time_1 + time_2), where time_1 and time_2 represent the different time periods
+```
+
 
