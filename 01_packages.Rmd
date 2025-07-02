@@ -11,16 +11,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Packages
 ```{r intro}
-# Functions take input, complete "tasks" or steps, and return output. 
+# Functions take input, complete "tasks" or steps, and return output.
 # R has a core set functions and features that come pre-installed.
-# For example, round() is a base R function. 
+# For example, round() is a base R function.
 
 # R packages are essentially bundles of functions and instructions. There are 1000s of packages that are amazing for different types of analyses, visualizations, and other tasks!
 browseURL("Https://cran.r-project.org/")
 
 # To install a package, or load a package that you've previous installed, you can run
-if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
-# This will install the "dplyr" package if you haven't installed it before, or just load it if you have already installed it. 
+if (!require("dplyr")) {
+  install.packages("dplyr")
+  require("dplyr")
+}
+# This will install the "dplyr" package if you haven't installed it before, or just load it if you have already installed it.
 
 # When you install a package, it is saved into your "library". To see which packages you already have in your library, run
 library()
@@ -31,45 +34,150 @@ library()
 
 # The necessary packages for these scripts:
 ```{r list packages}
-if (!require("dplyr")) {install.packages("dplyr"); require("dplyr")} 
-if (!require("janitor")) {install.packages("janitor"); require("janitor")} 
-if (!require("readxl")) {install.packages("readxl"); require("readxl")} 
-if (!require("haven")) {install.packages("haven"); require("haven")} 
-if (!require("Hmisc")) {install.packages("Hmisc"); require("Hmisc")} 
-if (!require("psych")) {install.packages("psych"); require("psych")} 
-if (!require("summarytools")) {install.packages("summarytools"); require("summarytools")} 
-if (!require("writexl")) {install.packages("writexl"); require("writexl")} 
-if (!require("apaTables")) {install.packages("apaTables"); require("apaTables")} 
-if (!require("scipub")) {install.packages("scipub"); require("scipub")} 
-if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
-if (!require("corrplot")) {install.packages("corrplot"); require("corrplot")} 
-if (!require("ggcorrplot")) {install.packages("ggcorrplot"); require("ggcorrplot")} 
-if (!require("GGally")) {install.packages("GGally"); require("GGally")} 
-if (!require("stats")) {install.packages("stats"); require("stats")} 
-if (!require("rempsyc")) {install.packages("rempsyc"); require("rempsyc")} 
-if (!require("interactions")) {install.packages("interactions"); require("interactions")} 
-if (!require("emmeans")) {install.packages("emmeans"); require("emmeans")} 
-if (!require("performance")) {install.packages("performance"); require("performance")} 
-if (!require("see")) {install.packages("see"); require("see")} 
-if (!require("psych")) {install.packages("psych"); require("psych")} 
-if (!require("report")) {install.packages("report"); require("report")} 
-if (!require("EGAnet")) {install.packages("EGAnet"); require("EGAnet")}
-if (!require("lme4")) {install.packages("lme4"); require("lme4")} 
-if (!require("lmerTest")) {install.packages("lmerTest"); require("lmerTest")} 
-if (!require("sjPlot")) {install.packages("sjPlot"); require("sjPlot")} 
-if (!require("nlme")) {install.packages("nlme"); require("nlme")} 
-if (!require("performance")) {install.packages("performance"); require("performance")} 
-if (!require("ICS")) {install.packages("ICS"); require("ICS")}
-if (!require("ICSOutlier")) {install.packages("ICSOutlier"); require("ICSOutlier")}
-if (!require("insight")) {install.packages("insight"); require("insight")}
-if (!require("psychometric")) {install.packages("psychometric"); require("psychometric")} 
-if (!require("DataCombine")) {install.packages("DataCombine"); require("DataCombine")} 
-if (!require("ggplot2")) {install.packages("ggplot2"); require("ggplot2")} 
-if (!require("EMAtools")) {install.packages("EMAtools"); require("EMAtools")} 
+if (!require("dplyr")) {
+  install.packages("dplyr")
+  require("dplyr")
+}
+if (!require("janitor")) {
+  install.packages("janitor")
+  require("janitor")
+}
+if (!require("readxl")) {
+  install.packages("readxl")
+  require("readxl")
+}
+if (!require("haven")) {
+  install.packages("haven")
+  require("haven")
+}
+if (!require("Hmisc")) {
+  install.packages("Hmisc")
+  require("Hmisc")
+}
+if (!require("psych")) {
+  install.packages("psych")
+  require("psych")
+}
+if (!require("summarytools")) {
+  install.packages("summarytools")
+  require("summarytools")
+}
+if (!require("writexl")) {
+  install.packages("writexl")
+  require("writexl")
+}
+if (!require("apaTables")) {
+  install.packages("apaTables")
+  require("apaTables")
+}
+if (!require("scipub")) {
+  install.packages("scipub")
+  require("scipub")
+}
+if (!require("rempsyc")) {
+  install.packages("rempsyc")
+  require("rempsyc")
+}
+if (!require("corrplot")) {
+  install.packages("corrplot")
+  require("corrplot")
+}
+if (!require("ggcorrplot")) {
+  install.packages("ggcorrplot")
+  require("ggcorrplot")
+}
+if (!require("GGally")) {
+  install.packages("GGally")
+  require("GGally")
+}
+if (!require("stats")) {
+  install.packages("stats")
+  require("stats")
+}
+if (!require("rempsyc")) {
+  install.packages("rempsyc")
+  require("rempsyc")
+}
+if (!require("interactions")) {
+  install.packages("interactions")
+  require("interactions")
+}
+if (!require("emmeans")) {
+  install.packages("emmeans")
+  require("emmeans")
+}
+if (!require("performance")) {
+  install.packages("performance")
+  require("performance")
+}
+if (!require("see")) {
+  install.packages("see")
+  require("see")
+}
+if (!require("psych")) {
+  install.packages("psych")
+  require("psych")
+}
+if (!require("report")) {
+  install.packages("report")
+  require("report")
+}
+if (!require("EGAnet")) {
+  install.packages("EGAnet")
+  require("EGAnet")
+}
+if (!require("lme4")) {
+  install.packages("lme4")
+  require("lme4")
+}
+if (!require("lmerTest")) {
+  install.packages("lmerTest")
+  require("lmerTest")
+}
+if (!require("sjPlot")) {
+  install.packages("sjPlot")
+  require("sjPlot")
+}
+if (!require("nlme")) {
+  install.packages("nlme")
+  require("nlme")
+}
+if (!require("performance")) {
+  install.packages("performance")
+  require("performance")
+}
+if (!require("ICS")) {
+  install.packages("ICS")
+  require("ICS")
+}
+if (!require("ICSOutlier")) {
+  install.packages("ICSOutlier")
+  require("ICSOutlier")
+}
+if (!require("insight")) {
+  install.packages("insight")
+  require("insight")
+}
+if (!require("psychometric")) {
+  install.packages("psychometric")
+  require("psychometric")
+}
+if (!require("DataCombine")) {
+  install.packages("DataCombine")
+  require("DataCombine")
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  require("ggplot2")
+}
+if (!require("EMAtools")) {
+  install.packages("EMAtools")
+  require("EMAtools")
+}
 ```
 
 ```{r report}
-# To see which packages are in use, 
+# To see which packages are in use,
 sessionInfo()
 
 # To report the packages that you used in a script, use the report() function from the report package.

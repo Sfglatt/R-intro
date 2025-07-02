@@ -1,0 +1,51 @@
+<table style="border-collapse:collapse; border:none;">
+<caption style="font-weight: bold; text-align:left;">Contingency Table</caption>
+ <tr>
+ <th style="border-top:double; text-align:center; font-style:italic; font-weight:normal; border-bottom:1px solid;" rowspan="2">Survived_rec</th>
+ <th style="border-top:double; text-align:center; font-style:italic; font-weight:normal;" colspan="4">Class_rec</th>
+ <th style="border-top:double; text-align:center; font-style:italic; font-weight:normal; font-weight:bolder; font-style:italic; border-bottom:1px solid; " rowspan="2">Total</th>
+ </tr>
+ 
+<tr>
+ <td style="border-bottom:1px solid; text-align:center; padding:0.2cm;">1</td>
+ <td style="border-bottom:1px solid; text-align:center; padding:0.2cm;">2</td>
+ <td style="border-bottom:1px solid; text-align:center; padding:0.2cm;">3</td>
+ <td style="border-bottom:1px solid; text-align:center; padding:0.2cm;">4</td>
+ </tr>
+ 
+<tr> 
+<td style="padding:0.2cm;  text-align:left; vertical-align:middle;">0</td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">122</span><br><span style="color:#339999;">220</span><br><span style="color:#333399;">8.2&nbsp;&#37;</span><br><span style="color:#339933;">37.5&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">167</span><br><span style="color:#339999;">193</span><br><span style="color:#333399;">11.2&nbsp;&#37;</span><br><span style="color:#339933;">58.6&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">528</span><br><span style="color:#339999;">478</span><br><span style="color:#333399;">35.4&nbsp;&#37;</span><br><span style="color:#339933;">74.8&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">673</span><br><span style="color:#339999;">599</span><br><span style="color:#333399;">45.2&nbsp;&#37;</span><br><span style="color:#339933;">76&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;  "><span style="color:black;">1490</span><br><span style="color:#339999;">1490</span><br><span style="color:#333399;">100&nbsp;&#37;</span><br><span style="color:#339933;">67.7&nbsp;&#37;</span></td> 
+</tr>
+ 
+<tr> 
+<td style="padding:0.2cm;  text-align:left; vertical-align:middle;">1</td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">203</span><br><span style="color:#339999;">105</span><br><span style="color:#333399;">28.6&nbsp;&#37;</span><br><span style="color:#339933;">62.5&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">118</span><br><span style="color:#339999;">92</span><br><span style="color:#333399;">16.6&nbsp;&#37;</span><br><span style="color:#339933;">41.4&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">178</span><br><span style="color:#339999;">228</span><br><span style="color:#333399;">25&nbsp;&#37;</span><br><span style="color:#339933;">25.2&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center; "><span style="color:black;">212</span><br><span style="color:#339999;">286</span><br><span style="color:#333399;">29.8&nbsp;&#37;</span><br><span style="color:#339933;">24&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;  "><span style="color:black;">711</span><br><span style="color:#339999;">711</span><br><span style="color:#333399;">100&nbsp;&#37;</span><br><span style="color:#339933;">32.3&nbsp;&#37;</span></td> 
+</tr>
+ 
+<tr> 
+<td style="padding:0.2cm;  border-bottom:double; font-weight:bolder; font-style:italic; text-align:left; vertical-align:middle;">Total</td>
+<td style="padding:0.2cm; text-align:center;   border-bottom:double;"><span style="color:black;">325</span><br><span style="color:#339999;">325</span><br><span style="color:#333399;">14.8&nbsp;&#37;</span><br><span style="color:#339933;">100&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;   border-bottom:double;"><span style="color:black;">285</span><br><span style="color:#339999;">285</span><br><span style="color:#333399;">12.9&nbsp;&#37;</span><br><span style="color:#339933;">100&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;   border-bottom:double;"><span style="color:black;">706</span><br><span style="color:#339999;">706</span><br><span style="color:#333399;">32.1&nbsp;&#37;</span><br><span style="color:#339933;">100&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;   border-bottom:double;"><span style="color:black;">885</span><br><span style="color:#339999;">885</span><br><span style="color:#333399;">40.2&nbsp;&#37;</span><br><span style="color:#339933;">100&nbsp;&#37;</span></td>
+<td style="padding:0.2cm; text-align:center;   border-bottom:double;"><span style="color:black;">2201</span><br><span style="color:#339999;">2201</span><br><span style="color:#333399;">100&nbsp;&#37;</span><br><span style="color:#339933;">100&nbsp;&#37;</span></td> 
+</tr>
+<td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="6">t=-13.223 &middot; df=3 &middot; Pearson's r=-0.271 &middot; p=0.000</td> 
+</tr>
+ 
+</table> <p>
+ <span style="color:black;">observed values</span><br>
+ <span style="color:#339999;">expected values</span><br>
+ <span style="color:#333399;">&#37; within Survived_rec</span><br>
+ <span style="color:#339933;">&#37; within Class_rec</span><br>
+ </p>
+

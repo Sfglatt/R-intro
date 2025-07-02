@@ -420,11 +420,6 @@ mlm_fig_two
 # and the variable to the right of the | is the grouping variable across which the effects should vary.
 # The 1 indicates the intercept
 
-# To have a *fixed* intercept while keeping the slope random, replace the 1 in the () with a 0
-# You would do this when you expect that the grouping structure (id) has no effect on the intercept, but that the slope will vary between id's.
-# For example, in this model, you are suggesting that there are no individual differences in starting levels of the outcome (si), but there are individual differences in how depression affects si
-# This model is uncommon in psych theory/analysis, because you often expect that baseline levels *and*  responses vary across people.
-
 # To fix the correlations between the random effects to 0, include the random effects in separate terms in the model:
 predictor_model_three <- lmer(
   si ~ depression_pmeans
@@ -443,6 +438,11 @@ mlm_fig_three
 ```
 
 ```{r p model four}
+# To have a *fixed* intercept while keeping the slope random, replace the 1 in the () with a 0
+# You would do this when you expect that the grouping structure (id) has no effect on the intercept, but that the slope will vary between id's.
+# For example, in this model, you are suggesting that there are no individual differences in starting levels of the outcome (si), but there are individual differences in how depression affects si
+# This model is uncommon in psych theory/analysis, because you often expect that baseline levels *and*  responses vary across people.
+
 # For a random slope and no random intercept
 predictor_model_four <- lmer(
   si ~ depression_pmeans
@@ -523,8 +523,7 @@ summary(nest_model_1b)
 # All models in a table
 tab_model(
   nest_model_1a,
-  show.se = TRUE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars",
-  file = "05_Output/MLM_table_two.doc"
+  show.se = TRUE, show.std = TRUE, show.stat = FALSE, p.val = "kr", show.df = FALSE, p.style = "stars"
 )
 
 # Visualize
@@ -538,7 +537,7 @@ mlm_fig_five <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
   facet_wrap(~clinic, scales = "free") +
   labs(
     title = "Nested effects (random intercept, fixed slope)",
-    x = "Momentary Depression",
+    x = "Depression (person-centered)",
     y = "SI"
   ) +
   theme_minimal() +
@@ -550,7 +549,6 @@ mlm_fig_five
 # Each line = an individual’s predicted relationship between depression and SI
 # This shows variation in only intercepts at the individual level, nested within clinics. Slope is fixed.
 ```
-
 
 ```{r 2 lv nest model two}
 # To add random slopes, it is the same syntax as before with the addition of clinic/id nesting.
@@ -585,7 +583,7 @@ mlm_fig_six <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
   facet_wrap(~clinic, scales = "free") +
   labs(
     title = "Nested effects (random intercept, random slope - correlated)",
-    x = "Momentary Depression",
+    x = "Depression (person-centered)",
     y = "SI"
   ) +
   theme_minimal() +
@@ -595,7 +593,6 @@ mlm_fig_six
 
 # Now, this figure shows variation in intercepts & slopes at the individual level, nested within clinics
 ```
-
 
 ```{r 2 lv nest model three}
 # For the random slopes to be uncorrelated with the intercept, include the random effects separately (as before)
@@ -649,11 +646,13 @@ mlm_fig_seven <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
   facet_wrap(~clinic, scales = "free") +
   labs(
     title = "Nested effects (random intercept, random slope - uncorrelated)",
-    x = "Momentary Depression",
+    x = "Depression (person-centered)",
     y = "SI"
   ) +
   theme_minimal() +
   theme(legend.position = "none")
+
+mlm_fig_seven
 ```
 
 
@@ -680,7 +679,7 @@ mlm_fig_eight <- ggplot(dataset_nest, aes(x = depression_pcent, y = si)) +
   facet_wrap(~clinic, scales = "free") +
   labs(
     title = "Nested effects (random slope, no intercept)",
-    x = "Momentary Depression",
+    x = "Depression (person-centered)",
     y = "SI"
   ) +
   theme_minimal() +
@@ -712,6 +711,18 @@ grid.arrange(mlm_fig_one, mlm_fig_two, mlm_fig_four,
   mlm_fig_five, mlm_fig_six, mlm_fig_eight,
   ncol = 3
 )
+
+# Save as a png
+png(paste0("05_Output/MLM_models_", Sys.Date(), ".png"),
+  units = "in", width = 20, height = 10, res = 300
+)
+
+grid.arrange(mlm_fig_one, mlm_fig_two, mlm_fig_four,
+  mlm_fig_five, mlm_fig_six, mlm_fig_eight,
+  ncol = 3
+)
+
+dev.off()
 ```
 
 # Recap notes
@@ -787,7 +798,7 @@ tab_model(prospective_model,
 )
 
 # Convert the estimates to effect sizes (in Cohen's d)
-lme.dscore(prospective_model, data = dataset, type = "lme4")
+lme.dscore(prospective_model, data = dataset_nest, type = "lme4")
 ```
 
 # Check for outliers
@@ -876,40 +887,10 @@ summary(treatment_model_4)
 # This model has:
 ## A random intercept for each clinic
 ## A random intercept for each subject nested within clinic
-
-# What about partial nesting?
-lmer(
-  y ~ time * tx +
-    (1 | clinic:id) +
-    (0 + time | clinic:id) +
-    (0 + time:tx | clinic) +
-    (0 + tx | clinic),
-  data = data
-)
-
-# There might be a case where you think that clinics  that are allocated participants that report worse symptoms at treatment start have better outcomes
-# For this situation, you would want to allow for separate covariances in each treatment group
-# To do this, update the variance-covariance matrix at the clinic level
-treatment_model_5 <- lmer(
-  si ~ time * treatment_arm +
-
-    (1 | clinic:id) + # random intercept for each subject nested within clinic
-    # ... allows each participant to have their own baseline level
-
-    (1 | clinic) + # random intercept for each clinic
-    # accounts for between-clinic differences in overall outcome levels
-
-    (0 + treatment_arm + time:treatment_arm | clinic), # random slopes for treatment_arm and time × treatment_arm interaction by clinic
-  #  This lets the effect of treatment vary by clinic
-  # The '0' here is so that there isn't a clinic-level intercept - since that's already in (1 | clinic)
-  data = dataset_nest
-)
-
-summary(treatment_model_5)
 ```
 
 ```{r conditional growth models}
-# Conditional growth models overlap  with common multilevel models
+# Conditional growth models overlap with common multilevel models
 # The conditional model allows each person to have a unique rate of change - everyone has a different slope for time.
 # To do this, add a random slope for the "time" variable, in the same way of (1 + depression_pcent | id)
 # This allows individual growth trajectories and explains growth with predictors
@@ -969,15 +950,6 @@ conditional_growth_model_3b <- lmer(
 # (clinic / id)
 conditional_growth_model_4 <- lmer(
   si ~ time * treatment_arm + (1 + time | clinic / id),
-  data = dataset_nest
-)
-
-# Finally, in the case where you think that clinics  that are allocated participants that report worse symptoms at treatment start have better outcomes (more room for improvement):
-conditional_growth_model_5 <- lmer(
-  si ~ time * treatment_arm
-    + (time | clinic:id)
-    + (time | clinic)
-    + (0 + treatment_arm + time:treatment_arm | clinic),
   data = dataset_nest
 )
 ```
